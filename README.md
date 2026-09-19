@@ -1,7 +1,6 @@
 # agent-delivery-gate
 
-> **Deterministic delivery gates for AI coding agents.**
-> When an agent says "done", this framework decides whether that is *true* — using machine-checkable evidence instead of the agent's own summary.
+> **A vibe-coding skill that ships.** Describe what you want in plain language — a team of 15 agent roles takes it from requirement to tested, reviewed, documented, deployable delivery. Deterministic gates decide when it is actually *done*.
 
 [![tests](https://img.shields.io/badge/tests-83%20passing-brightgreen)](#verify-it-yourself)
 [![python](https://img.shields.io/badge/python-3.12-blue)](#verify-it-yourself)
@@ -9,35 +8,107 @@
 
 ---
 
-## The problem
+## What this is
 
-Coding agents are good at producing code and bad at proving it is finished. A typical run ends with *"I've implemented the feature and everything works."* That claim is unfalsifiable:
+A reusable **software-delivery skill** for AI coding agents. You give it a requirement in natural language; it runs a full delivery pipeline and produces the real artefacts a project needs:
 
-- Which requirement did this code actually implement?
-- Which test actually covers it?
-- Did the change stay inside the scope that was approved?
-- Is the agent's "all tests pass" a real measurement or a confident guess?
+```text
+your requirement
+      │
+      ▼
+  environment preflight → input contract → requirements
+  → architecture → data / API contract / performance / UI design
+  → implementation → unit + integration tests → E2E
+  → code review → security review → release readiness
+  → documentation → independent audit → delivery gate
+      │
+      ▼
+  docs/01..19 + evidence ledger + a mechanically derived PASS or BLOCK
+```
 
-**agent-delivery-gate externalises that state.** The LLM does analysis and implementation; deterministic scripts own the facts and the verdicts.
-
-> **Core invariant:** an LLM summary, an embedding, or a generated query may *assist exploration*, but none of them may ever be submitted as `PASS` evidence for a gate.
+It is **not** a chat wrapper. It is 21 process nodes, 15 role contracts, 35 document templates and 22 JSON Schema contracts, driven by a process model that the scripts re-read every round.
 
 ---
 
-## What it does
+## Why gates, and not just "the agent says it's done"
 
-| Capability | Entry point |
+Vibe coding has one real failure mode: you cannot tell a finished delivery from a confident one. A run ends with *"I've implemented the feature and everything works."* That claim is unfalsifiable — which requirement did this code implement? Which test covers it? Did the change stay in the approved scope? Was "all tests pass" measured or guessed?
+
+So the skill does the work, and **deterministic scripts own the verdicts.**
+
+> **Core invariant:** an LLM summary, an embedding, or a generated query may *assist exploration*, but none of them may ever be submitted as `PASS` evidence for a gate.
+
+That is what makes unattended delivery trustworthy: the agent cannot mark its own homework.
+
+---
+
+## Quick start
+
+```bash
+git clone https://github.com/Tommy1Tang/agent-delivery-gate.git
+cd agent-delivery-gate
+
+# 1. It runs on the standard library alone - no pytest, no network, no services
+python run_tests.py
+```
+
+Expected:
+
+```text
+================================================================
+agent-delivery-gate test suite
+  modules  : 10
+  tests    : 83
+  failures : 0
+  errors   : 0
+  skipped  : 0
+================================================================
+RESULT: OK
+```
+
+Then drive a delivery:
+
+```bash
+# 2. Turn a requirement into a routed plan + handoff payloads
+python scripts/orchestrate.py \
+  --skill-root . \
+  --project-root /path/to/your-project \
+  --task-summary "给订单系统增加批量导入功能" \
+  --output-dir .qoder/skill-state --json
+
+# 3. Ask the process model what happens next - every round, never from memory
+python scripts/next_step.py --skill-root . --project-root . --json
+
+# 4. At the end, the delivery gate decides
+python scripts/validate_delivery.py --skill-root . --project-root /path/to/your-project
+```
+
+Register the directory as a skill in your agent runtime and invoke it with a requirement — see [`SKILL.md`](SKILL.md) for the full contract.
+
+---
+
+## What lands in your project
+
+The pipeline writes real deliverables, not a summary. [`docs/`](docs/) in this repo contains a **complete example delivery** produced this way for *MES Lite*, a generic discrete-manufacturing execution system — requirements, design, API contract, UI spec, test cases and reports, code and security review, deployment, observability, and an independent audit.
+
+Requirements carry stable IDs (`CAP-001`, `FR-001`, `AC-001`) that are reused verbatim across design, contract, tests and audit — so the traceability claim can be **checked by reading**, not trusted.
+
+---
+
+## The four workflows
+
+| Workflow | Triggered when |
 |---|---|
-| Route a request into one of 4 delivery workflows | `scripts/orchestrate.py`, `scripts/next_step.py` |
-| Query code structure in natural language | `scripts/query_code_graph.py` |
-| Link requirement → code symbol → test with exact IDs | `scripts/materialize_trace_links.py` |
-| Compute blast radius **before** changing code | `scripts/analyze_code_impact.py` |
-| Reconcile actual changes against the approved `changeSet` **after** | `scripts/reconcile_code_changes.py` |
-| Derive the current workflow node mechanically | `scripts/next_step.py` |
-| Gate the delivery on coverage / E2E / review / traceability | `scripts/validate_delivery.py` |
-| Append-only evidence ledger for audit | `scripts/write_evidence_ledger.py` |
+| `forward-development` | Building a new feature or a whole project |
+| `change-management` | Requirements or baseline changed |
+| `security-governance` | Security assessment and remediation |
+| `incident-management` | Incident, outage, recovery |
 
-### Architecture: three graphs and a bridge
+Routing is decided by the process model, not by the agent's mood.
+
+---
+
+## Architecture: three graphs and a bridge
 
 ```text
 Requirement graph ──┐
@@ -53,117 +124,57 @@ Delivery graph ─────┘                        │
 | Code symbol graph | Normalised manifest/snapshot from an offline symbol index | Derived and rebuildable — never authoritative |
 | TraceBridge | Explicit Requirement → Symbol → Test links | Only explicit, unique, verifiable links reach a gate |
 
----
-
-## Verify it yourself
-
-No database, no server, no API key, no network. Pure standard-library Python.
-
-```bash
-git clone <this-repo>
-cd agent-delivery-gate
-
-# 83 tests, ~30s, standard library only - no pytest, no network, no services
-python run_tests.py
-```
-
-Expected output:
-
-```text
-================================================================
-agent-delivery-gate test suite
-  modules  : 10
-  tests    : 83
-  failures : 0
-  errors   : 0
-  skipped  : 0
-================================================================
-RESULT: OK
-```
-
-`run_tests.py` exists because several suites drive CLI scripts that print
-structured JSON to stdout; with plain `unittest discover` that output
-interleaves with the runner's report and hides the summary. Use
-`python run_tests.py -v` if you want the raw per-module output.
-
-Then watch the gate logic refuse to guess. The impact analyser returns exactly one of `FOUND`, `NO_IMPACT`, `UNKNOWN` — and `NO_IMPACT` is only permitted when the seed is unique, the snapshot is fresh, coverage is complete, and traversal was not truncated:
-
-```bash
-python scripts/analyze_code_impact.py \
-  --snapshot tests/fixtures/code-intelligence/polyglot/snapshot.json \
-  --trace-bridge tests/fixtures/code-intelligence/polyglot/trace-bridge.json \
-  --requirement FR-001 \
-  --artifact-root . \
-  --json
-```
-
----
-
-## The gates
-
-Seven code gates, each bound to a mechanical criterion rather than a judgement call:
+### The gates
 
 | Gate | Mechanical criterion |
 |---|---|
 | `C-CODE-01` | Provider version / distribution identity / schema and artifact hashes are trustworthy and fresh |
-| `C-CODE-02` | Eligible files and captures are complete; internal relations fully resolved; relationship count conserved |
-| `C-CODE-03` | Trace markers are strictly legal — no orphan, ambiguous, or duplicate test IDs |
+| `C-CODE-02` | Eligible files and captures complete; internal relations fully resolved; relationship count conserved |
+| `C-CODE-03` | Trace markers strictly legal — no orphan, ambiguous, or duplicate test IDs |
 | `C-CODE-04` | Every Must-FR and P0-AC has both an exact implementation link and a test link |
 | `C-CODE-05` | Pre-change: a current impact analysis must exist before code may be modified |
 | `C-CODE-06` | Post-change: a real before/after reconciliation must pass |
 | `C-CODE-07` | Inventory, baseline, activation and ledger references are replayable |
 
-A gate may return `PASS`, `BLOCK`, `UNKNOWN`, or `NOT_APPLICABLE`. **`UNKNOWN` is not a soft pass** — it blocks, and it carries a reason code and a remediation hint. There is deliberately no path where "the agent was confident" becomes `PASS`.
+A gate returns `PASS`, `BLOCK`, `UNKNOWN`, or `NOT_APPLICABLE`. **`UNKNOWN` is not a soft pass** — it blocks, with a reason code and remediation hint. There is deliberately no path where "the agent was confident" becomes `PASS`.
+
+Supporting capabilities: natural-language code queries (`scripts/query_code_graph.py`), pre-change blast radius (`scripts/analyze_code_impact.py`), post-change reconciliation (`scripts/reconcile_code_changes.py`), and an append-only evidence ledger (`scripts/write_evidence_ledger.py`).
 
 ---
 
 ## What's in the box
 
 ```text
-scripts/        51 Python modules (~16k lines) — the deterministic machinery
+scripts/        53 Python modules (~16k lines) — the deterministic machinery
 schemas/        22 JSON Schema contracts (handoff, role result, quality gate, audit, ledger)
 assets/
-  config/       process model (19 nodes / 15 roles / 4 workflows), ontology, code-intelligence config
-  prompts/      15 role prompt contracts
+  config/       process model (21 nodes / 15 roles / 4 workflows), ontology
+  prompts/      15 role contracts
   templates/    35 delivery-document templates
-  constitution.md, tech.md, design.md   governance + design-system layer
+  design.md     a reusable design-system spec (46 colour tokens, 29 sections)
 references/     43 governance and workflow documents
-docs/           an example generated delivery for a generic MES (see below)
-tests/          83 tests covering gate logic, determinism, and policy
+docs/           a complete example delivery for a generic MES (19 documents)
+tests/          83 tests covering gate logic, determinism and policy
 ```
-
----
-
-## Example delivery output
-
-The `docs/` directory contains a **complete example delivery** produced by this framework for *MES Lite*, a generic discrete-manufacturing execution system. It shows what the process actually emits end to end:
-
-```text
-requirements → architecture → data contract → UI spec
-→ implementation → unit/integration tests → E2E → code & security review
-→ deployment → observability → independent audit → delivery gate
-```
-
-Requirements carry stable IDs (`CAP-001`, `FR-001`, `AC-001`) that are reused verbatim in the design, contract, test and audit documents — so the traceability claim can be checked by reading them rather than trusting it.
 
 ---
 
 ## Design principles
 
-1. **Facts over narration.** Scripts own verdicts; the model owns reasoning.
-2. **The process model is executable.** `scripts/next_step.py` recomputes the current node from the process model and the filesystem each round — the workflow is never recalled from chat history.
+1. **The agent does the work; scripts decide if it's done.** Verdicts are never self-issued.
+2. **The process model is executable.** `next_step.py` recomputes the current node from the model and the filesystem — the workflow is never recalled from chat history.
 3. **`UNKNOWN` beats a guess.** Insufficient evidence blocks rather than passes.
-4. **Rework is targeted, not wholesale.** A failed gate routes back to the specific role that owns the root cause, with a per-root-cause retry cap.
-5. **The delivery gate cannot be talked past.** A delivery reaches `completed` only when `validate_delivery.py` exits `0`.
+4. **Rework is targeted.** A failed gate routes to the role owning the root cause, with a per-root-cause retry cap.
+5. **The gate cannot be talked past.** A delivery completes only when `validate_delivery.py` exits `0`.
 
 ---
 
 ## Scope and honest limitations
 
-- **Single-repository, offline, static analysis.** Dynamic dispatch, reflection and runtime dependency injection are not fully resolvable; when coverage cannot be proven the framework returns `UNKNOWN` rather than guessing.
-- **It is a harness, not a product.** There is no UI and no hosted service. It is driven from the CLI and from an agent runtime.
-- **Runtime adapters vary.** Dispatch behaviour differs between agent runtimes (isolated subagent sessions vs. single-session fallback); the adapters under `references/runtime-adapters/` document the trade-offs.
-- **The example delivery in `docs/` is illustrative**, generated to demonstrate the process. It is not a production MES.
+- **Deliverables, not a running app.** The skill produces the design, contracts, code changes, tests and evidence for the target project. This repository is the skill itself plus one worked example — it is not a hosted service and contains no UI.
+- **Static, single-repository analysis.** Dynamic dispatch, reflection and runtime DI are not fully resolvable; when coverage cannot be proven the framework returns `UNKNOWN` instead of guessing.
+- **The example delivery is illustrative.** The test counts and coverage figures in `docs/` demonstrate report format. The framework's own real result is the 83/83 from `python run_tests.py`.
+- **Runtime adapters differ.** Dispatch behaviour varies between agent runtimes (isolated subagent sessions vs. single-session fallback); see `references/runtime-adapters/`.
 
 ---
 
