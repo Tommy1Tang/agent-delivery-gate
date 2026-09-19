@@ -2,8 +2,8 @@
 
 > **A vibe-coding skill that ships.** Describe what you want in plain language — a team of 15 agent roles takes it from requirement to tested, reviewed, documented, deployable delivery. Deterministic gates decide when it is actually *done*.
 
-[![tests](https://img.shields.io/badge/tests-83%20passing-brightgreen)](#verify-it-yourself)
-[![python](https://img.shields.io/badge/python-3.12-blue)](#verify-it-yourself)
+[![tests](https://github.com/Tommy1Tang/agent-delivery-gate/actions/workflows/tests.yml/badge.svg)](https://github.com/Tommy1Tang/agent-delivery-gate/actions/workflows/tests.yml)
+[![python](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)](#verify-it-yourself)
 [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 ---
@@ -48,7 +48,9 @@ That is what makes unattended delivery trustworthy: the agent cannot mark its ow
 git clone https://github.com/Tommy1Tang/agent-delivery-gate.git
 cd agent-delivery-gate
 
-# 1. It runs on the standard library alone - no pytest, no network, no services
+# 1. It runs on the standard library alone - no pytest, no install, no network, no services.
+#    Requires Python 3.11+ (the code uses datetime.UTC). CI covers 3.11 and 3.12 on Linux,
+#    plus 3.12 on Windows.
 python run_tests.py
 ```
 

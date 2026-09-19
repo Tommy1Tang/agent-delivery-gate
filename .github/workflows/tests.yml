@@ -1,0 +1,47 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: python ${{ matrix.python-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.11", "3.12"]
+        include:
+          # One non-Linux leg so path/encoding assumptions get caught too.
+          - os: windows-latest
+            python-version: "3.12"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # No pip install step on purpose: the suite runs on the standard library
+      # alone. If this ever needs a dependency, that is a regression worth seeing.
+      - name: Run test suite
+        run: python run_tests.py
+
+      - name: Check every script compiles
+        run: python -m compileall -q scripts
+
+      - name: Validate example delivery documents against templates
+        run: python scripts/validate_doc_structure.py --skill-root . --project-root .
+
+      - name: Check skill harness integrity
+        run: python scripts/check_skill_integrity.py .
