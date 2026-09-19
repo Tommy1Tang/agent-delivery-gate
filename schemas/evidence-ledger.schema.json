@@ -1,0 +1,953 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.qoder/skills/software-development-team/evidence-ledger.schema.json",
+  "title": "Delivery Evidence Ledger",
+  "type": "object",
+  "required": [
+    "taskName",
+    "createdAt",
+    "deliveryStatus",
+    "deliveryGateEvidence",
+    "roleRuns",
+    "commands",
+    "artifacts",
+    "qualityGates",
+    "observability"
+  ],
+  "properties": {
+    "taskName": {
+      "type": "string"
+    },
+    "deliveryId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Optional immutable delivery identity bound by write_evidence_ledger.py for activation consumption."
+    },
+    "createdAt": {
+      "type": "string"
+    },
+    "deliveryStatus": {
+      "type": "string",
+      "enum": [
+        "in-progress",
+        "halted-pending-user",
+        "halted-circuit-broken",
+        "halted-multi-crash",
+        "halted-user-cancel",
+        "failed-closed",
+        "completed"
+      ],
+      "default": "in-progress",
+      "description": "Delivery-level state. See references/halt-and-resume-policy.md. Auditor MUST refuse verdict='通过' when value is non-completed."
+    },
+    "processPointer": {
+      "type": "object",
+      "description": "Durable trace of the delivery process pointer, written by `scripts/next_step.py --record-pointer` against assets/config/skill-process.json. The replay in next_step.resolve() stays authoritative; this field makes the traversal history (including rework re-entries and which guarded edge fired) inspectable instead of merely recomputable.",
+      "properties": {
+        "currentNode": {
+          "type": "string",
+          "description": "Process node id at the time of recording, e.g. SP-13 (or SP-HALT / SP-DONE)."
+        },
+        "state": {
+          "type": "string",
+          "enum": ["actionable", "halted", "ready-for-done", "not-applicable"],
+          "description": "Pointer state as resolved by next_step."
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO 8601 timestamp of the last pointer write."
+        },
+        "traversedPath": {
+          "type": "array",
+          "description": "Ordered milestone nodes already satisfied, with the guarded edge that fired and how many times the node ran (occurrences > 1 means rework re-entry).",
+          "items": {
+            "type": "object",
+            "required": ["node", "result"],
+            "properties": {
+              "node": {"type": "string"},
+              "name": {"type": "string"},
+              "result": {"type": "string", "enum": ["completed", "skipped"]},
+              "via": {
+                "type": ["string", "null"],
+                "description": "Fired transition as '<guard> -> <target>'. null when no guard evaluated true (e.g. exitCode not recorded)."
+              },
+              "occurrences": {"type": "integer", "minimum": 0},
+              "reworked": {"type": "boolean"}
+            },
+            "additionalProperties": false
+          },
+          "default": []
+        },
+        "reworkedNodes": {
+          "type": "array",
+          "items": {"type": "string"},
+          "default": [],
+          "description": "Node ids entered more than once. Cross-check against observability.reworkCount and reworkPerRootCause."
+        }
+      },
+      "additionalProperties": false
+    },
+    "pendingUser": {
+      "type": "object",
+      "description": "Required when deliveryStatus='halted-pending-user'.",
+      "properties": {
+        "roleId": {"type": "string"},
+        "trigger": {
+          "type": "string",
+          "enum": ["retry-exhausted", "needs-info", "core-role-failed", "security-block", "rework-cap-reached"]
+        },
+        "questionsForUser": {"type": "array", "items": {"type": "string"}},
+        "exhaustedLocalContext": {"type": "array", "items": {"type": "string"}},
+        "raisedAt": {"type": "string"},
+        "responseDeadline": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "circuitBreakerCleared": {
+      "type": "object",
+      "description": "Required when transitioning out of halted-circuit-broken.",
+      "required": ["user", "reason", "clearedAt"],
+      "properties": {
+        "user": {"type": "string"},
+        "reason": {"type": "string"},
+        "clearedAt": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "multiCrashRecoveryPlan": {
+      "type": "object",
+      "description": "Required when transitioning out of halted-multi-crash.",
+      "required": ["approvedBy", "plan", "approvedAt"],
+      "properties": {
+        "approvedBy": {"type": "string"},
+        "plan": {"type": "string"},
+        "approvedAt": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "cancellationEvidence": {
+      "type": "object",
+      "description": "Required when deliveryStatus='halted-user-cancel'. Must originate from a user message; Orchestrator self-cancellation is forbidden.",
+      "required": ["cancellationOrigin", "userMessageRef", "cancelledAt"],
+      "properties": {
+        "cancellationOrigin": {"type": "string", "enum": ["user"]},
+        "userMessageRef": {"type": "string"},
+        "cancelledAt": {"type": "string"},
+        "confirmationQuote": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "deliveryGateEvidence": {
+      "type": "object",
+      "description": "Latest scripts/validate_delivery.py output. REQUIRED before Auditor dispatch (see development-orchestrator.prompt.md final summary section). Auditor MUST copy this whole object into docs/19-监督审计.md verbatim.",
+      "required": ["status", "blockingReasons", "runAt"],
+      "properties": {
+        "status": {"type": "string", "enum": ["pass", "fail"]},
+        "blockingReasons": {"type": "array", "items": {"type": "string"}},
+        "warnings": {"type": "array", "items": {"type": "string"}},
+        "runAt": {"type": "string"},
+        "strictMode": {"type": "boolean", "description": "True iff validator was run in strict mode. Auditor MUST refuse verdict='通过' when false."},
+        "command": {"type": "string", "description": "Exact command line used to invoke validate_delivery.py. MUST contain '--strict' (or omit '--no-strict')."}
+      },
+      "additionalProperties": true
+    },
+    "strictModeWaiver": {
+      "type": "object",
+      "description": "REQUIRED when validate_delivery.py was invoked with --no-strict. Forbids silent strict bypass.",
+      "required": ["justification", "approver", "approverMessageRef", "approvedAt"],
+      "properties": {
+        "justification": {"type": "string", "minLength": 20},
+        "approver": {"type": "string", "enum": ["user"], "description": "Only the human user can approve a strict waiver; Orchestrator self-approval is forbidden."},
+        "approverMessageRef": {"type": "string", "minLength": 1},
+        "approvedAt": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "securityNotApplicableEvidence": {
+      "type": "object",
+      "description": "REQUIRED when securityScope='not-applicable'. Forbids self-declared security skip.",
+      "required": ["productAnalystConfirmed", "architectConfirmed", "triggerWordScanReport", "approverMessageRef"],
+      "properties": {
+        "productAnalystConfirmed": {"type": "boolean"},
+        "architectConfirmed": {"type": "boolean"},
+        "triggerWordScanReport": {"type": "string", "minLength": 1, "description": "Path to the security-trigger-word scan report. Must list every word/pattern scanned and confirm all missed."},
+        "approverMessageRef": {"type": "string", "minLength": 1, "description": "User message reference confirming security review is not applicable."}
+      },
+      "additionalProperties": false
+    },
+    "fallbackTrigger": {
+      "type": "object",
+      "description": "REQUIRED when any roleRun.sessionMode='single-session-fallback'. Forbids silent fallback.",
+      "required": ["fallbackReason", "fallbackApprover", "fallbackTimestamp"],
+      "properties": {
+        "fallbackReason": {"type": "string", "enum": ["agent-tool-unavailable", "runtime-not-supported", "user-explicit-request"]},
+        "fallbackApprover": {"type": "string", "enum": ["user", "runtime-adapter"]},
+        "fallbackTimestamp": {"type": "string"},
+        "approverMessageRef": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "roleRuns": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "roleId",
+          "status",
+          "durationMs"
+        ],
+        "properties": {
+          "roleId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["planned", "completed", "complete", "success", "passed", "blocked", "needs-info", "failed", "skipped", "skip", "not-run", "lost-session", "timed-out", "cancelled"]
+          },
+          "durationMs": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Role execution wall-clock time in milliseconds"
+          },
+          "retryCount": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0,
+            "description": "Number of retries before success/failure"
+          },
+          "blockedBy": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [],
+            "description": "Blocking reasons if status is blocked"
+          },
+          "sessionMode": {
+            "type": "string",
+            "enum": [
+              "independent-session",
+              "single-session-fallback",
+              "manual",
+              "planned-independent",
+              "objective-skip"
+            ]
+          },
+          "epicId": {
+            "type": "string",
+            "description": "Epic this role run belongs to (RQ-D). Present when Epic grouping is active (FR >= 5). Format: EP-{seq}"
+          },
+          "reasonForSkip": {
+            "type": "string",
+            "enum": [
+              "tooling-missing",
+              "upstream-blocked",
+              "user-approved",
+              "objective-conditions-met",
+              "cascade-block"
+            ],
+            "description": "REQUIRED when status='skipped'. Free-text reasons are forbidden; only this whitelist is allowed. See halt-and-resume-policy.md and per-role objective skip conditions."
+          },
+          "objectiveConditionsRef": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "REQUIRED when reasonForSkip='objective-conditions-met'. Must reference specific objective conditions (e.g. 'performance-engineer.prompt.md L13-19 condition 1')."
+          },
+          "summary": {
+            "type": "string"
+          },
+          "expectedOutputs": {
+            "type": "array",
+            "items": {"type": "string"},
+            "default": []
+          },
+          "changeSet": {
+            "oneOf": [
+              {"type": "null"},
+              {
+                "type": "object",
+                "required": ["modified", "created", "deleted"],
+                "properties": {
+                  "modified": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+                  "created": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+                  "deleted": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+                  "missing": {"type": "boolean"},
+                  "epicId": {"type": "string"}
+                },
+                "additionalProperties": false
+              }
+            ]
+          },
+          "receivedDeclarations": {
+            "type": "array",
+            "items": {"type": "string"},
+            "default": [],
+            "description": "Enhancement declarations received from Orchestrator handoff (OC-A). Implementing roles record which declarations they received."
+          },
+          "verifiedDeclarations": {
+            "type": "array",
+            "items": {"type": "string"},
+            "default": [],
+            "description": "Enhancement declarations verified by QA (QA-A). QA role records which declarations were validated."
+          },
+          "fulfilledDeclarations": {
+            "type": "array",
+            "items": {"type": "string"},
+            "default": [],
+            "description": "Enhancement declarations successfully fulfilled by this role."
+          },
+          "unfulfilledDeclarations": {
+            "type": "array",
+            "items": {"type": "string"},
+            "default": [],
+            "description": "Enhancement declarations not fulfilled, with justification."
+          }
+        },
+        "allOf": [
+          {
+            "if": {"properties": {"status": {"enum": ["completed", "complete", "success", "passed"]}}, "required": ["status"]},
+            "then": {"required": ["changeSet"], "properties": {"changeSet": {"type": "object"}}}
+          }
+        ],
+        "additionalProperties": false
+      }
+    },
+    "commands": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "command",
+          "status",
+          "durationMs"
+        ],
+        "properties": {
+          "command": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pass",
+              "fail",
+              "blocked",
+              "not-run"
+            ]
+          },
+          "durationMs": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Command execution time in milliseconds"
+          },
+          "exitCode": {
+            "type": "integer",
+            "description": "Raw process exit code. Optional but recommended: transition guards like exit==1 vs exit==2 (input-contract partial vs fail) are only decidable when this is recorded; status alone can only answer exit==0 / exit!=0."
+          },
+          "evidence": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "qualityGates": {
+      "type": "array",
+      "items": {
+        "$ref": "quality-gate.schema.json"
+      }
+    },
+    "codeIntelligence": {
+      "type": "object",
+      "description": "Optional, backward-compatible evidence for deterministic code-index gates. Absence remains valid for legacy and objectively non-code deliveries.",
+      "required": ["schemaVersion", "applicability", "applicabilityEvidence"],
+      "properties": {
+        "schemaVersion": {"const": "1.0.0"},
+        "applicability": {"enum": ["applicable", "not-applicable", "legacy-unmigrated"]},
+        "applicabilityEvidence": {
+          "type": "object",
+          "required": ["detectedPaths", "eligibleFileCount", "changedCodeFileCount", "reason"],
+          "properties": {
+            "detectedPaths": {"type": "array", "items": {"type": "string"}},
+            "eligibleFileCount": {"type": "integer", "minimum": 0},
+            "changedCodeFileCount": {"type": "integer", "minimum": 0},
+            "reason": {"type": "string"}
+          },
+          "additionalProperties": false
+        },
+        "provider": {
+          "type": "object",
+          "required": ["name", "version", "manifestVersion", "codecSchemaSha256"],
+          "properties": {
+            "name": {"const": "code-graph-rag"}, "version": {"const": "0.0.779"}, "manifestVersion": {"const": 1},
+            "codecSchemaSha256": {"const": "09e1c5e0b1b58c5e02c3e55e99e438625dfeed0caf3839a5b782d9196b348e84"}
+          },
+          "additionalProperties": false
+        },
+        "repositoryId": {"type": "string", "minLength": 1, "maxLength": 128},
+        "deliveryId": {"type": "string", "minLength": 1, "maxLength": 128},
+        "startingProcessVersion": {"type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"},
+        "activatedVersion": {"type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"},
+        "activatedAt": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]+)?Z$"},
+        "bootstrapReason": {"const": "initial-code-intelligence-baseline"},
+        "activation": {"$ref": "bootstrap-activation.schema.json"},
+        "consumedMarker": {"$ref": "bootstrap-consumed-marker.schema.json"},
+        "activationHistory": {"type": "array", "items": {"$ref": "bootstrap-activation.schema.json"}},
+        "consumedMarkerHistory": {"type": "array", "items": {"$ref": "bootstrap-consumed-marker.schema.json"}},
+        "beforeManifest": {"$ref": "#/$defs/codeArtifactRef"},
+        "beforeTraceBridge": {"$ref": "#/$defs/codeArtifactRef"},
+        "preChangeImpactReports": {"type": "array", "items": {"$ref": "#/$defs/codeArtifactRef"}},
+        "afterManifest": {"$ref": "#/$defs/codeArtifactRef"},
+        "afterTraceBridge": {"$ref": "#/$defs/codeArtifactRef"},
+        "indexDiff": {"$ref": "#/$defs/codeArtifactRef"},
+        "bootstrapInventory": {"$ref": "#/$defs/codeArtifactRef"},
+        "baselineStatement": {"$ref": "#/$defs/codeArtifactRef"},
+        "gateResults": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["gateId", "verdict", "artifactHashes", "commandRef", "exitCode", "timestamp"],
+            "properties": {
+              "gateId": {"pattern": "^C-CODE-0[1-7]$"},
+              "verdict": {"enum": ["PASS", "BLOCK", "UNKNOWN", "NOT_APPLICABLE"]},
+              "artifactHashes": {"type": "array", "items": {"pattern": "^sha256:[0-9a-f]{64}$"}},
+              "commandRef": {"type": "string"},
+              "exitCode": {"enum": [0, 1, 2]},
+              "timestamp": {"type": "string"},
+              "code": {"type": "string"},
+              "comparisonMode": {"enum": ["normal-diff", "baseline-creation"]},
+              "diffClaimed": {"type": "boolean"}
+            },
+            "additionalProperties": false
+          }
+        },
+        "evidenceEvents": {"type": "array", "items": {"type": "object"}},
+        "migrationNotes": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "traceabilityMatrix": {
+      "type": "array",
+      "description": "Bidirectional requirement-to-code traceability chain: requirement → design → code → test → artifact",
+      "items": {
+        "type": "object",
+        "required": ["requirementId", "codeFiles", "testCases"],
+        "properties": {
+          "requirementId": {
+            "type": "string",
+            "description": "Identifier linking back to docs/01-需求规格书.md requirement entry"
+          },
+          "requirementSummary": {
+            "type": "string",
+            "description": "Short description of the requirement"
+          },
+          "designRef": {
+            "type": "array",
+            "items": { "type": "string" },
+            "default": [],
+            "description": "References to design documents or architecture decisions"
+          },
+          "codeFiles": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Source files implementing this requirement"
+          },
+          "testCases": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Test case identifiers covering this requirement"
+          },
+          "artifacts": {
+            "type": "array",
+            "items": { "type": "string" },
+            "default": [],
+            "description": "Deliverable artifacts produced for this requirement"
+          },
+          "symbolRefs": {
+            "type": "array",
+            "items": {"type": "object"},
+            "default": [],
+            "description": "Exact SymbolRef objects from the current canonical manifest"
+          },
+          "testIds": {
+            "type": "array",
+            "items": {"type": "string", "pattern": "^TEST-[A-Z0-9]+(?:-[A-Z0-9]+)*$"},
+            "default": []
+          },
+          "traceLinkIds": {
+            "type": "array",
+            "items": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+            "default": []
+          },
+          "manifestHash": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          }
+        },
+        "additionalProperties": false
+      },
+      "default": []
+    },
+    "eventLog": {
+      "type": "array",
+      "description": "Structured chronological event log for the entire delivery lifecycle",
+      "items": {
+        "type": "object",
+        "required": ["timestamp", "eventType", "message"],
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "description": "ISO 8601 timestamp"
+          },
+          "eventType": {
+            "type": "string",
+            "enum": [
+              "role-start",
+              "role-complete",
+              "role-fail",
+              "gate-pass",
+              "gate-fail",
+              "retry",
+              "block",
+              "error",
+              "warning",
+              "info",
+              "decision",
+              "reverse_sync_event",
+              "role_session_failed",
+              "agent_lost_session",
+              "quality_gate_block"
+            ]
+          },
+          "roleId": {
+            "type": "string",
+            "description": "Role that emitted this event"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable event description"
+          },
+          "context": {
+            "type": "object",
+            "description": "Optional structured context (e.g. file paths, error details, metrics)",
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "default": []
+    },
+    "changeHistory": {
+      "type": "array",
+      "description": "Change traceability log: records every requirement/scope change with impact analysis",
+      "items": {
+        "type": "object",
+        "required": ["changeId", "timestamp", "requester", "description", "impactAnalysis", "affectedArtifacts"],
+        "properties": {
+          "changeId": {
+            "type": "string",
+            "description": "Unique change identifier (e.g. CR-001)"
+          },
+          "timestamp": {
+            "type": "string",
+            "description": "When the change was raised"
+          },
+          "requester": {
+            "type": "string",
+            "description": "Who requested the change"
+          },
+          "description": {
+            "type": "string",
+            "description": "What changed"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Why it changed"
+          },
+          "impactAnalysis": {
+            "type": "string",
+            "description": "Structured impact analysis result"
+          },
+          "affectedArtifacts": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Documents/code artifacts that were invalidated or re-baselined"
+          },
+          "approvedBy": {
+            "type": "string",
+            "description": "Who approved the change (if applicable)"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["raised", "analyzed", "approved", "applied", "verified"],
+            "default": "raised"
+          }
+        },
+        "additionalProperties": false
+      },
+      "default": []
+    },
+    "decisionLog": {
+      "type": "array",
+      "description": "Architecture Decision Records (ADR): key technical decisions with context and consequences",
+      "items": {
+        "type": "object",
+        "required": ["decisionId", "timestamp", "context", "decision", "consequences", "decidedBy"],
+        "properties": {
+          "decisionId": {
+            "type": "string",
+            "description": "Unique decision identifier (e.g. ADR-001)"
+          },
+          "timestamp": {
+            "type": "string"
+          },
+          "context": {
+            "type": "string",
+            "description": "Problem statement and background"
+          },
+          "decision": {
+            "type": "string",
+            "description": "The decision that was made"
+          },
+          "alternatives": {
+            "type": "array",
+            "items": { "type": "string" },
+            "default": [],
+            "description": "Alternatives that were considered"
+          },
+          "consequences": {
+            "type": "string",
+            "description": "Positive and negative consequences of the decision"
+          },
+          "decidedBy": {
+            "type": "string",
+            "description": "Role or person who made the decision"
+          },
+          "supersededBy": {
+            "type": "string",
+            "description": "If later replaced, reference to the newer ADR"
+          }
+        },
+        "additionalProperties": false
+      },
+      "default": []
+    },
+    "resourceConsumption": {
+      "type": "object",
+      "description": "AI resource consumption metrics for cost optimization and capacity planning",
+      "properties": {
+        "totalTokensUsed": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total tokens consumed across all sessions"
+        },
+        "inputTokens": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0,
+          "description": "Prompt/input tokens"
+        },
+        "outputTokens": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0,
+          "description": "Completion/output tokens"
+        },
+        "totalApiCalls": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total API calls made"
+        },
+        "contextWindowPeakUsage": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Peak context window usage ratio (0-1)"
+        },
+        "costEstimate": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Estimated total cost in USD"
+        },
+        "perRoleTokens": {
+          "type": "object",
+          "description": "Token consumption breakdown per role",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "observability": {
+      "type": "object",
+      "description": "Cross-cutting observability data for the entire delivery",
+      "required": [],
+      "properties": {
+        "totalWallTimeMs": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Sum of all role durations"
+        },
+        "reworkCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10,
+          "default": 0,
+          "description": "Number of user-initiated rework cycles. HARD CAP at 10 cumulative across the delivery (see retry-policy.md Rework Loop Cap); exceeding is a schema validation error and triggers halted-pending-user."
+        },
+        "reworkPerRootCause": {
+          "type": "object",
+          "description": "Per-root-cause rework counter. HARD CAP 5 per root cause; exceeding is a schema validation error and triggers halted-pending-user.",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 5
+          },
+          "default": {}
+        },
+        "reworkReasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Reasons recorded for each rework"
+        },
+        "securityBlockCount": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0
+        },
+        "securityBlockDetails": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "rootCauseClusters": {
+          "type": "array",
+          "description": "Top rework root-cause clusters identified by Supervisor Auditor (SA returnable S4-4).",
+          "items": {
+            "type": "object",
+            "required": ["rootCause", "count", "involvedRoles"],
+            "properties": {
+              "rootCause": {"type": "string"},
+              "count": {"type": "integer", "minimum": 1},
+              "involvedRoles": {"type": "array", "items": {"type": "string"}},
+              "suggestedEscalation": {"type": "string"}
+            },
+            "additionalProperties": false
+          },
+          "default": []
+        },
+        "reworkCallbacks": {
+          "type": "array",
+          "description": "Targeted rework callback records (OC-C). Each entry tracks a directed callback instead of full-chain rework.",
+          "items": {
+            "type": "object",
+            "required": ["targetRole", "rootCause", "scope", "triggeredBy"],
+            "properties": {
+              "targetRole": {"type": "string", "description": "Role to callback for targeted fix"},
+              "rootCause": {"type": "string", "description": "QA-C attributed root cause"},
+              "scope": {"type": "array", "items": {"type": "string"}, "description": "Affected files only"},
+              "triggeredBy": {"type": "string", "description": "QA defect ID or description that triggered callback"},
+              "resolvedAt": {"type": "string", "description": "ISO 8601 timestamp when callback was resolved"},
+              "revalidated": {"type": "boolean", "default": false, "description": "Whether QA re-validated after callback fix"}
+            },
+            "additionalProperties": false
+          },
+          "default": []
+        },
+        "defectRootCause": {
+          "type": "array",
+          "description": "Defect root cause classification from QA-C, attributing defects to upstream roles.",
+          "items": {
+            "type": "object",
+            "required": ["defectType", "attributedRole"],
+            "properties": {
+              "defectType": {"type": "string", "enum": ["logic", "concurrency", "boundary", "config", "security", "performance", "contract", "ui"]},
+              "attributedRole": {"type": "string"},
+              "description": {"type": "string"}
+            },
+            "additionalProperties": false
+          },
+          "default": []
+        }
+      },
+      "additionalProperties": false
+    },
+    "enhancementDeclarations": {
+      "type": "object",
+      "description": "Enhancement declarations passing protocol (OC-A). Architect declares capabilities; Orchestrator passes to implementing roles; QA verifies fulfillment.",
+      "properties": {
+        "declarations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "source", "target", "description"],
+            "properties": {
+              "id": {"type": "string", "description": "Declaration ID, e.g. BE-A, FE-C"},
+              "source": {"type": "string", "description": "Role that declared the enhancement, typically architect"},
+              "target": {"type": "string", "description": "Role expected to fulfill the declaration"},
+              "description": {"type": "string", "description": "What the declaration requires"}
+            },
+            "additionalProperties": false
+          },
+          "default": []
+        },
+        "totalCount": {"type": "integer", "minimum": 0, "default": 0},
+        "fulfilledCount": {"type": "integer", "minimum": 0, "default": 0},
+        "unfulfilledCount": {"type": "integer", "minimum": 0, "default": 0},
+        "waivedCount": {"type": "integer", "minimum": 0, "default": 0}
+      },
+      "additionalProperties": false
+    },
+    "phases": {
+      "type": "array",
+      "description": "Incremental delivery phases (OC-H). Each phase has independent boundary, verification, and rollback scope.",
+      "items": {
+        "type": "object",
+        "required": ["phaseId", "boundaryRef", "status"],
+        "properties": {
+          "phaseId": {"type": "string", "description": "Phase identifier, e.g. phase-1"},
+          "boundaryRef": {"type": "string", "description": "Reference to EA7 phase boundary definition"},
+          "status": {"type": "string", "enum": ["pending", "in-progress", "completed", "failed", "rolled-back"]},
+          "deliveryGateEvidence": {
+            "type": "object",
+            "description": "Independent delivery gate evidence for this phase",
+            "properties": {
+              "status": {"type": "string", "enum": ["pass", "fail"]},
+              "runAt": {"type": "string"}
+            }
+          },
+          "handoverTo": {"type": "string", "description": "Next phase ID this phase hands over to"},
+          "receivedFrom": {"type": "string", "description": "Previous phase ID this phase received from"},
+          "rollbackScope": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Files/modules affected by rollback of this phase only"
+          },
+          "roleRuns": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Role run IDs belonging to this phase"
+          }
+        },
+        "additionalProperties": false
+      },
+      "default": []
+    },
+    "estimate": {
+      "type": "object",
+      "description": "Delivery time estimation (OC-F). Records predicted vs actual rounds for efficiency analysis.",
+      "properties": {
+        "totalEstimate": {"type": "integer", "minimum": 1, "description": "Predicted total role rounds from OC-F formula"},
+        "formula": {"type": "string", "description": "The estimation formula used"},
+        "actualRounds": {"type": "integer", "minimum": 0, "description": "Actual total rounds (roleRuns count + reworkCount)"},
+        "deviationPercent": {"type": "number", "description": "(actual - estimate) / estimate * 100"},
+        "deviationReason": {"type": "string", "description": "Root cause of deviation when > 50%: requirement-change | rework-exceeded | parallelization-insufficient | role-blocked"}
+      },
+      "additionalProperties": false
+    },
+    "taskGraph": {
+      "type": "object",
+      "description": "Task dependency DAG and critical path analysis (LP-B). Enables parallel window identification and dynamic rescheduling.",
+      "properties": {
+        "criticalPath": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Ordered list of task IDs on the critical path"
+        },
+        "criticalPathLength": {"type": "integer", "minimum": 1, "description": "Number of sequential rounds on critical path"},
+        "parallelWindows": {
+          "type": "array",
+          "items": {"type": "array", "items": {"type": "string"}},
+          "description": "Groups of tasks that can execute in parallel"
+        },
+        "actualSequence": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Actual execution sequence (|| denotes parallel)"
+        },
+        "hasCycle": {"type": "boolean", "default": false, "description": "Whether a dependency cycle was detected"}
+      },
+      "additionalProperties": false
+    },
+    "modules": {
+      "type": "array",
+      "description": "Multi-module/multi-service tracking (LP-C). Each module has independent role chains and status.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "moduleId": {"type": "string", "description": "Module identifier (e.g. backend, frontend, auth-service)"},
+          "status": {"type": "string", "enum": ["pending", "in-progress", "completed", "blocked", "rolled-back"], "description": "Current module status"},
+          "boundary": {"type": "string", "description": "Detection signal: pom.xml | package.json | docker-compose | directory-convention"},
+          "roleRuns": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Role run IDs belonging to this module"
+          },
+          "dependencies": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Other module IDs this module depends on (via API contract)"
+          }
+        },
+        "additionalProperties": false
+      },
+      "default": []
+    },
+    "adaptiveReworkCaps": {
+      "type": "object",
+      "description": "Adaptive rework limits (LP-D). Computed from FR count to scale rework tolerance for large projects.",
+      "properties": {
+        "frCount": {"type": "integer", "minimum": 1, "description": "Total number of functional requirements identified by Product Analyst"},
+        "cumulativeCap": {"type": "integer", "minimum": 10, "maximum": 20, "description": "Adaptive cumulative rework limit: min(10 + ceil(frCount/10), 20)"},
+        "perRootCauseCap": {"type": "integer", "minimum": 5, "maximum": 8, "description": "Adaptive per-root-cause limit: min(5 + ceil(frCount/20), 8)"}
+      },
+      "additionalProperties": false
+    },
+    "epics": {
+      "type": "array",
+      "description": "Epic/domain grouping from Product Analyst (RQ-D). Present when FR >= 5. Enables Epic-aware scheduling and domain sub-specs.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "epicId": {"type": "string", "description": "Epic identifier, e.g. EP-01"},
+          "domainName": {"type": "string", "description": "Domain name in Chinese, e.g. 工单管理"},
+          "frIds": {"type": "array", "items": {"type": "string"}, "description": "FR IDs belonging to this epic"},
+          "moSCoWDistribution": {"type": "string", "description": "e.g. '4 Must + 1 Should'"},
+          "phase": {"type": "string", "description": "MVP | Phase 2 | Phase 3+"},
+          "dependsOnEpics": {"type": "array", "items": {"type": "string"}, "description": "Epic IDs this epic depends on"},
+          "specFile": {"type": "string", "description": "Sub-spec file path if RQ-E triggered, e.g. docs/01.1-需求规格书-工单管理.md"},
+          "status": {"type": "string", "enum": ["pending", "in-progress", "completed", "blocked"], "description": "Epic delivery status"}
+        },
+        "additionalProperties": false
+      },
+      "default": []
+    }
+  },
+  "$defs": {
+    "codeArtifactRef": {
+      "type": "object",
+      "required": ["path", "sha256", "contentHash"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+        "contentHash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+        "verdict": {"enum": ["FOUND", "NO_IMPACT", "PASS", "BLOCK", "UNKNOWN"]}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

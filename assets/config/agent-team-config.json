@@ -1,0 +1,378 @@
+{
+    "version":  5,
+    "runtimeRequirements": {
+        "python": ">=3.10",
+        "shell": "any",
+        "agentTool": "required",
+        "browserSubagent": "required-for-e2e"
+    },
+    "governance":  {
+                       "localSpecFiles":  [
+                                              "assets/constitution.md",
+                                              "assets/tech.md",
+                                              "assets/design.md"
+                                          ],
+                       "normalizedReference":  "references/local-governance.md",
+                       "workflowReferences":  [
+                                                  "references/workflow-matrix.md",
+                                                  "references/change-management-workflow.md",
+                                                  "references/security-governance-workflow.md",
+                                                  "references/incident-management-workflow.md",
+                                                  "references/autonomous-update-policy.md",
+                                                  "references/prd-input-contract.md",
+                                                  "references/graph-engineering-laws.md",
+                                                  "references/development-baseline-contract.md",
+                                                  "references/forward-development-template.md",
+                                                  "references/change-request-template.md",
+                                                  "references/security-review-template.md",
+                                                  "references/incident-report-template.md",
+                                                  "references/workflow-audit-template.md"
+                                              ],
+                       "mandatoryRules":  [
+                                              "never guess when context is unclear",
+                                              "analyze before acting",
+                                              "produce requirements, plan, task breakdown, and design before implementation for every task",
+                                              "validate before claiming completion",
+                                              "disclose risks, blockers, gaps, and deviations explicitly",
+                                              "prefer project reality first when it conflicts with generic governance",
+                                              "perform clear non-destructive updates directly without asking for manual confirmation",
+                                              "identify whether the task is forward-delivery, change-management, security-sensitive, or incident-handling",
+                                              "treat every development request as a large-project-grade delivery workflow"
+                                          ]
+                   },
+    "team":  {
+                 "name":  "software-development-team",
+                 "description":  "A reusable software development agent team covering intake, requirements, planning, architecture, implementation, validation, review, release, documentation, and audit under a unified large-project delivery standard.",
+                 "orchestration":  {
+                                       "mode":  "independent-sessions",
+                                       "orchestratorRoleId":  "development-orchestrator",
+                                       "spawnStrategy":  "isolated-session-per-role",
+                                       "fallback":  "single-session-with-disclosure",
+                                       "confirmationPolicy":  "direct-update-by-default"
+                                   }
+             },
+    "harness":  {
+                    "schemas":  {
+                                    "handoff":  "schemas/handoff.schema.json",
+                                    "roleResult":  "schemas/role-result.schema.json",
+                                    "artifactManifest":  "schemas/artifact-manifest.schema.json",
+                                    "qualityGate":  "schemas/quality-gate.schema.json",
+                                    "auditRecord":  "schemas/audit-record.schema.json",
+                                    "evidenceLedger":  "schemas/evidence-ledger.schema.json",
+                                    "metrics":  "schemas/metrics.schema.json",
+                                    "migrationReport":  "schemas/migration-report.schema.json"
+                                },
+                    "scripts":  {
+                                    "skillIntegrity":  "scripts/check_skill_integrity.py",
+                                    "deliveryValidation":  "scripts/validate_delivery.py",
+                                    "handoffBuilder":  "scripts/build_handoff.py",
+                                    "orchestrator":  "scripts/orchestrate.py",
+                                    "evidenceLedgerWriter":  "scripts/write_evidence_ledger.py",
+                                    "goldenTests":  "scripts/run_golden_tests.py",
+                                    "metricsReport":  "scripts/metrics_report.py",
+                                    "compatibilityCheck":  "scripts/compatibility_check.py",
+                                    "detectStack":  "scripts/detect_stack.py",
+                                    "designSystemLoader":  "scripts/design_system_loader.py"
+                                },
+                    "templates":  {
+                                      "requirements":  "assets/templates/需求规格书.template.md",
+                                      "plan":  "assets/templates/开发计划.template.md",
+                                      "tasks":  "assets/templates/任务清单.template.md",
+                                      "design":  "assets/templates/详细设计说明书.template.md",
+                                      "dataDesign":  "assets/templates/数据设计说明书.template.md",
+                                      "performanceOptimization":  "assets/templates/性能优化说明.template.md",
+                                      "contract":  "assets/templates/接口数据契约.template.md",
+                                      "ui":  "assets/templates/UI设计说明.template.md",
+                                      "unitCases":  "assets/templates/单元测试用例.template.md",
+                                      "unitReport":  "assets/templates/单元测试报告.template.md",
+                                      "integrationCases":  "assets/templates/集成测试用例.template.md",
+                                      "integrationReport":  "assets/templates/集成测试报告.template.md",
+                                      "e2eCases":  "assets/templates/E2E测试用例.template.md",
+                                      "e2eReport":  "assets/templates/E2E测试报告.template.md",
+                                      "codeReview":  "assets/templates/代码评审.template.md",
+                                      "securityReview":  "assets/templates/安全评审.template.md",
+                                      "deployment":  "assets/templates/部署说明.template.md",
+                                      "audit":  "assets/templates/监督审计.template.md",
+                                      "evidenceLedger":  "assets/templates/交付证据账本.template.md",
+                                      "commitMessage":  "assets/templates/commit-message.template.md",
+                                      "pullRequest":  "assets/templates/pr.template.md"
+                                  },
+                    "adapters":  {
+                                     "pythonFastapiSqlite":  "references/adapters/python-fastapi-sqlite.md",
+                                     "vueElementPlus":  "references/adapters/vue-element-plus.md",
+                                     "javaSpringPostgresql":  "references/adapters/java-spring-postgresql.md",
+                                     "nodeReact":  "references/adapters/node-react.md"
+                                 },
+                    "runtimeAdapters":  {
+                                            "codexSubagents":  "references/runtime-adapters/codex-subagents.md",
+                                            "qoder":  "references/runtime-adapters/qoder.md",
+                                            "singleSessionFallback":  "references/runtime-adapters/single-session-fallback.md"
+                                        },
+                    "goldenTests":  {
+                                      "directory":  "tests/golden",
+                                      "runner":  "scripts/run_golden_tests.py"
+                                  }
+                },
+    "roles":  [
+                  {
+                      "id":  "development-orchestrator",
+                      "name":  "Development Orchestrator",
+                      "promptFile":  "assets/prompts/development-orchestrator.prompt.md",
+                      "purpose":  "Route every development task through the unified large-project-grade role sequence and dispatch each downstream role in its own isolated session.",
+                      "stage":  "intake"
+                  },
+                  {
+                      "id":  "product-analyst",
+                      "name":  "Product Analyst",
+                      "promptFile":  "assets/prompts/product-analyst.prompt.md",
+                      "purpose":  "Translate user requests into business goals, scenarios, boundaries, and formal requirements. Owns docs/01-需求规格书.md output.",
+                      "stage":  "analysis",
+                      "expectedInputs":  [],
+                      "expectedOutputs":  ["docs/01-需求规格书.md"]
+                  },
+                  {
+                      "id":  "architect",
+                      "name":  "Architect",
+                      "promptFile":  "assets/prompts/architect.prompt.md",
+                      "purpose":  "Define structured specs, scope, constraints, milestones, plan, tasks, AND design technical solution, boundaries, tradeoffs, security considerations, and implementation structure. Owns docs/02-开发计划.md, docs/03-任务清单.md, and docs/04-详细设计说明书.md outputs.",
+                      "stage":  "planning-and-architecture",
+                      "expectedInputs":  ["docs/01-需求规格书.md"],
+                      "expectedOutputs":  ["docs/02-开发计划.md", "docs/03-任务清单.md", "docs/04-详细设计说明书.md"]
+                  },
+                  {
+                      "id":  "data-engineer",
+                      "name":  "Data Engineer",
+                      "promptFile":  "assets/prompts/data-engineer.prompt.md",
+                      "purpose":  "Deepen data-layer design: data modeling, storage strategy, index strategy, migration planning, data consistency, lifecycle management, and query optimization. Owns docs/05-数据设计说明书.md output when data model is complex or large data volume.",
+                      "stage":  "architecture",
+                      "expectedInputs":  ["docs/01-需求规格书.md", "docs/04-详细设计说明书.md"],
+                      "expectedOutputs":  ["docs/05-数据设计说明书.md"]
+                  },
+                  {
+                      "id":  "performance-engineer",
+                      "name":  "Performance Engineer",
+                      "promptFile":  "assets/prompts/performance-engineer.prompt.md",
+                      "purpose":  "Define performance SLA baselines, design load-test scenarios, analyze bottlenecks, design caching strategies, verify optimizations, and recommend production monitoring. Owns docs/06-性能优化说明.md output when performance SLA or high-load scenarios exist.",
+                      "stage":  "validation",
+                      "expectedInputs":  ["docs/01-需求规格书.md", "docs/04-详细设计说明书.md"],
+                      "expectedOutputs":  ["docs/06-性能优化说明.md"]
+                  },
+
+                  {
+                      "id":  "data-contract-designer",
+                      "name":  "Data Contract Designer",
+                      "promptFile":  "assets/prompts/data-contract-designer.prompt.md",
+                      "purpose":  "Define request/response schemas, events, field constraints, and explicit data contracts required by the design. Owns docs/07-接口数据契约.md output.",
+                      "stage":  "architecture",
+                      "expectedInputs":  ["docs/01-需求规格书.md", "docs/04-详细设计说明书.md"],
+                      "expectedOutputs":  ["docs/07-接口数据契约.md"]
+                  },
+                  {
+                      "id":  "ui-designer",
+                      "name":  "UI Designer",
+                      "promptFile":  "assets/prompts/design-ui-designer.md",
+                      "purpose":  "Define visual design systems, component hierarchy, responsive UI specifications, accessibility requirements, and developer-ready UI handoff before frontend implementation. Owns docs/08-UI设计说明.md output when UI is affected.",
+                      "stage":  "design",
+                      "expectedInputs":  ["docs/01-需求规格书.md", "docs/04-详细设计说明书.md"],
+                      "expectedOutputs":  ["docs/08-UI设计说明.md"]
+                  },
+                  {
+                      "id":  "execution-engineer",
+                      "name":  "Execution Engineer",
+                      "promptFile":  "assets/prompts/execution-engineer.prompt.md",
+                      "purpose":  "Execute implementation strictly according to approved requirements, plan, and design, with validation after each critical change.",
+                      "stage":  "implementation",
+                      "expectedInputs":  ["docs/04-详细设计说明书.md", "docs/07-接口数据契约.md", "docs/05-数据设计说明书.md", "docs/03-任务清单.md"],
+                      "expectedOutputs":  ["src/**"]
+                  },
+                  {
+                      "id":  "frontend-engineer",
+                      "name":  "Frontend Engineer",
+                      "promptFile":  "assets/prompts/frontend-engineer.prompt.md",
+                      "purpose":  "Build UI, interactions, client-side state, and user experience according to the formal design and contracts.",
+                      "stage":  "implementation",
+                      "expectedInputs":  ["docs/08-UI设计说明.md", "docs/07-接口数据契约.md", "docs/04-详细设计说明书.md"],
+                      "expectedOutputs":  ["frontend/src/**"]
+                  },
+                  {
+                      "id":  "backend-engineer",
+                      "name":  "Backend Engineer",
+                      "promptFile":  "assets/prompts/backend-engineer.prompt.md",
+                      "purpose":  "Build APIs, services, storage, security, and backend logic according to the formal design and contracts.",
+                      "stage":  "implementation",
+                      "expectedInputs":  ["docs/07-接口数据契约.md", "docs/05-数据设计说明书.md", "docs/04-详细设计说明书.md"],
+                      "expectedOutputs":  ["scripts/**"]
+                  },
+                  {
+                      "id":  "quality-gate-engineer",
+                      "name":  "Quality Gate Engineer",
+                      "promptFile":  "assets/prompts/quality-gate-engineer.prompt.md",
+                      "purpose":  "Execute comprehensive quality gates including test validation, code review, and security review. Owns docs/10-单元测试用例.md, docs/11-单元测试报告.md, docs/12-集成测试用例.md, docs/13-集成测试报告.md, docs/14-代码评审.md, docs/15-安全评审.md outputs. E2E ownership is delegated to browser-e2e-engineer.",
+                      "stage":  "validation-and-review",
+                      "expectedInputs":  ["docs/01-需求规格书.md", "docs/04-详细设计说明书.md", "docs/07-接口数据契约.md"],
+                      "expectedOutputs":  ["docs/10-单元测试用例.md", "docs/11-单元测试报告.md", "docs/12-集成测试用例.md", "docs/13-集成测试报告.md", "docs/14-代码评审.md", "docs/15-安全评审.md"]
+                  },
+                  {
+                      "id":  "browser-e2e-engineer",
+                      "name":  "Browser E2E Engineer",
+                      "promptFile":  "assets/prompts/browser-e2e-engineer.prompt.md",
+                      "purpose":  "Design and AUTOMATICALLY EXECUTE end-to-end user journeys against the running system using the Browser builtin agent (Playwright/Cypress when available, Browser tool fallback otherwise). Owns docs/16-E2E测试用例.md and docs/17-E2E测试报告.md outputs. MANDATORY for every delivery — no opt-out.",
+                      "stage":  "validation-and-review",
+                      "requiredTools":  ["Browser"],
+                      "mandatory":  true,
+                      "expectedInputs":  ["docs/01-需求规格书.md", "docs/16-E2E测试用例.md"],
+                      "expectedOutputs":  ["docs/16-E2E测试用例.md", "docs/17-E2E测试报告.md"]
+                  },
+                  {
+                      "id":  "devops-release-engineer",
+                      "name":  "DevOps and Release Engineer",
+                      "promptFile":  "assets/prompts/devops-release-engineer.prompt.md",
+                      "purpose":  "Handle build, deploy, release readiness, rollback planning, and formal deployment documentation. Owns docs/18-部署说明.md output.",
+                      "stage":  "release",
+                      "expectedInputs":  ["docs/04-详细设计说明书.md", "docs/17-E2E测试报告.md"],
+                      "expectedOutputs":  ["docs/18-部署说明.md"]
+                  },
+                  {
+                      "id":  "documentation-writer",
+                      "name":  "Documentation Writer",
+                      "promptFile":  "assets/prompts/documentation-writer.prompt.md",
+                      "purpose":  "Normalize the full delivery document set, package handoff materials, and keep documentation aligned with implementation and validation evidence.",
+                      "stage":  "documentation",
+                      "expectedInputs":  ["docs/*.md"],
+                      "expectedOutputs":  ["docs/README.md"]
+                  },
+                  {
+                      "id":  "supervisor-auditor",
+                      "name":  "Supervisor Auditor",
+                      "promptFile":  "assets/prompts/supervisor-auditor.prompt.md",
+                      "purpose":  "Audit whether all required roles, documents, validations, and workflow domains were completed before final delivery. Owns docs/19-监督审计.md output.",
+                      "stage":  "audit",
+                      "expectedInputs":  ["docs/*.md", "docs/evidence-ledger.json"],
+                      "expectedOutputs":  ["docs/19-监督审计.md"]
+                  }
+              ],
+    "mode":  {
+                 "unified-large-delivery":  {
+                                                "description":  "Every task is handled as a large-project-grade delivery workflow.",
+                                                "route":  [
+                                                              "development-orchestrator",
+                                                              "product-analyst",
+                                                              "architect",
+                                                              "data-engineer",
+                                                              "data-contract-designer",
+                                                              "performance-engineer",
+                                                              "ui-designer",
+                                                              "execution-engineer",
+                                                              "frontend-engineer",
+                                                              "backend-engineer",
+                                                              "quality-gate-engineer",
+                                                              "browser-e2e-engineer",
+                                                              "devops-release-engineer",
+                                                              "documentation-writer",
+                                                              "supervisor-auditor"
+                                                          ]
+                                            }
+             },
+    "routing":  {
+                    "defaultMode":  "unified-large-delivery",
+                    "rules":  [
+                                  {
+                                      "if":  "any development task is received",
+                                      "use":  "unified-large-delivery"
+                                  },
+                                  {
+                                      "if":  "task includes requirement change after baseline exists",
+                                      "addWorkflow":  "change-management"
+                                  },
+                                  {
+                                      "if":  "task touches security-sensitive scope or production-facing trust boundaries",
+                                      "addWorkflow":  "security-governance"
+                                  },
+                                  {
+                                      "if":  "task is incident, defect escalation, unstable behavior, or emergency fix",
+                                      "addWorkflow":  "incident-management"
+                                  }
+                              ],
+                    "workflowDomains":  [
+                                            {
+                                                "name":  "forward-development",
+                                                "reference":  "references/workflow-matrix.md"
+                                            },
+                                            {
+                                                "name":  "change-management",
+                                                "reference":  "references/change-management-workflow.md"
+                                            },
+                                            {
+                                                "name":  "security-governance",
+                                                "reference":  "references/security-governance-workflow.md"
+                                            },
+                                            {
+                                                "name":  "incident-management",
+                                                "reference":  "references/incident-management-workflow.md"
+                                            }
+                                        ]
+                },
+    "artifacts":  {
+                      "requiredDocuments":  [
+                                                "docs/01-需求规格书.md",
+                                                "docs/02-开发计划.md",
+                                                "docs/03-任务清单.md",
+                                                "docs/04-详细设计说明书.md",
+                                                "docs/07-接口数据契约.md",
+                                                "docs/10-单元测试用例.md",
+                                                "docs/11-单元测试报告.md",
+                                                "docs/12-集成测试用例.md",
+                                                "docs/13-集成测试报告.md",
+                                                "docs/16-E2E测试用例.md",
+                                                "docs/17-E2E测试报告.md",
+                                                "docs/14-代码评审.md",
+                                                "docs/19-监督审计.md",
+                                                "docs/18-部署说明.md"
+                                            ],
+                      "conditionalDocuments":  [
+                                                   "docs/05-数据设计说明书.md when ANY objective trigger is met: (1) introduces or modifies database schema/tables/indexes; (2) requires data migration; (3) data volume exceeds 100k rows or includes batch processing; (4) Architect identifies non-trivial data model in docs/04-详细设计说明书.md. Subjective opt-out (e.g. 'simple model', 'small data') is forbidden.",
+                                                   "docs/06-性能优化说明.md when ANY objective trigger is met: (1) docs/01-需求规格书.md declares any SLA / response-time / throughput / concurrency target; (2) Architect identifies performance regression risk or hot path in docs/04-详细设计说明书.md; (3) task introduces new data query, batch processing, caching, message queue, or file I/O refactor. Subjective opt-out (e.g. 'small scale', 'low concurrency', 'no perf requirement') is forbidden.",
+                                                   "docs/08-UI设计说明.md when ANY objective trigger is met: (1) task summary or domain involves UI/UX/interface/page/component/视觉/界面/页面/响应式; (2) task adds or modifies user-facing views, components, layouts, interactions, accessibility, or visual specs. Subjective opt-out is forbidden.",
+                                                   "docs/15-安全评审.md when ANY objective trigger is met: (1) task summary contains auth/login/token/secret/permission/credential/encrypt/decrypt/权限/鉴权/认证/密钥/漏洞/加解密/敏感数据; (2) task touches authentication, authorization, encryption, sensitive data, audit log, or trust boundaries; (3) workflow domain includes security-governance; (4) Architect or Product Analyst flags security-sensitive scope. Subjective opt-out (e.g. 'no security implication', 'internal only') is forbidden — see references/security-governance-workflow.md for the full objective trigger list."
+                                               ],
+                      "mandatoryE2E":  {
+                                           "description":  "E2E test cases AND E2E test report are MANDATORY for EVERY delivery, with NO subjective or objective opt-out. Even pure-backend deliveries must run API-level end-to-end smoke through the public entry point (CLI / HTTP) and document them as E2E cases. The Browser E2E Engineer role MUST be dispatched in every workflow.",
+                                           "hardThresholds":  {
+                                                                  "caseTotalMin":  1,
+                                                                  "passRateMin":  100.0,
+                                                                  "requiredP0Coverage":  "所有需求规格书中 AC P0 验收条目必须被至少一条 E2E 用例覆盖"
+                                                              }
+                                       }
+                  },
+    "completion":  {
+                       "required":  [
+                                        "implementation or deliverable exists",
+                                        "docs/01-需求规格书.md exists",
+                                        "docs/02-开发计划.md exists",
+                                        "docs/03-任务清单.md exists",
+                                        "docs/04-详细设计说明书.md exists",
+                                        "docs/07-接口数据契约.md exists",
+                                        "docs/05-数据设计说明书.md exists when conditionalDocuments objective triggers are met (see artifacts.conditionalDocuments)",
+                                        "docs/06-性能优化说明.md exists when conditionalDocuments objective triggers are met (see artifacts.conditionalDocuments)",
+                                        "docs/08-UI设计说明.md exists when conditionalDocuments objective triggers are met (see artifacts.conditionalDocuments)",
+                                        "docs/10-单元测试用例.md exists",
+                                        "docs/11-单元测试报告.md exists",
+                                        "docs/12-集成测试用例.md exists",
+                                        "docs/13-集成测试报告.md exists",
+                                        "docs/16-E2E测试用例.md exists (MANDATORY for every delivery, no opt-out)",
+                                        "docs/17-E2E测试报告.md exists (MANDATORY for every delivery, no opt-out)",
+                                        "E2E pass-rate = 100% and E2E case count >= 1 in docs/17-E2E测试报告.md",
+                                        "docs/14-代码评审.md exists",
+                                        "docs/15-安全评审.md exists when conditionalDocuments objective triggers are met (see artifacts.conditionalDocuments); subjective 'not applicable' opt-out requires evidenceLedger.securityNotApplicableEvidence with 5 objective conditions per quality-gate-engineer prompt",
+                                        "docs/19-监督审计.md exists",
+                                        "docs/18-部署说明.md exists",
+                                        "validation has been performed",
+                                        "review findings and outcomes are disclosed",
+                                        "risks, blockers, gaps, and deviations are disclosed",
+                                        "result is ready for next handoff or final delivery",
+                                        "supervisor auditor has audited role invocation and workflow compliance",
+                                        "local governance compliance has been checked against references/local-governance.md",
+                                        "applicable workflow domains have been explicitly checked and completed"
+                                    ]
+                   }
+}

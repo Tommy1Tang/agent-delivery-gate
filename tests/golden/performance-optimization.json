@@ -1,0 +1,37 @@
+{
+  "name": "pure performance optimization",
+  "taskSummary": "优化首页加载速度，目标 LCP < 2.5s，减少数据库查询 N+1 问题，添加 Redis 缓存层。",
+  "workflowDomains": [
+    "forward-development"
+  ],
+  "expectedWorkflowDomains": [
+    "forward-development"
+  ],
+  "expectedRouteContains": [
+    "product-analyst",
+    "architect",
+    "performance-engineer",
+    "backend-engineer",
+    "quality-gate-engineer",
+    "browser-e2e-engineer",
+    "supervisor-auditor"
+  ],
+  "expectedRequiredDocuments": [
+    "docs/01-需求规格书.md",
+    "docs/04-详细设计说明书.md",
+    "docs/16-E2E测试用例.md",
+    "docs/17-E2E测试报告.md",
+    "docs/19-监督审计.md"
+  ],
+  "expectedUiAffected": false,
+  "expectedSecuritySensitive": false,
+  "expectedConditionalRoleFlags": {
+    "performance-engineer": true,
+    "data-engineer": true
+  },
+  "expectedPlanSnapshot": {
+    "stackDetection": {
+      "deterministic": true
+    }
+  }
+}

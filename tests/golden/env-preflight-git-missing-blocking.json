@@ -1,0 +1,13 @@
+{
+  "name": "ENV: git missing (fresh OS) -> blocking, delivery workflow depends on it",
+  "kind": "env-preflight",
+  "simulatedTools": {
+    "java": "openjdk version \"17.0.10\" 2024-01-16",
+    "node": "v22.11.0",
+    "mvn": "Apache Maven 3.9.9",
+    "python": "Python 3.12.9",
+    "py312": true
+  },
+  "expectedStatus": "not-ready",
+  "expectedBlockingContains": ["git not found in PATH", "Git.Git"]
+}

@@ -1,0 +1,11 @@
+{
+  "name": "OWL-TRACE: data design back-links ZERO modeled entities => gate 23 fails",
+  "kind": "owl-traceability",
+  "projectFixture": {
+    "docs/input/02-领域模型.md": "# 领域模型\n\n| entity_id | 名称 |\n|---|---|\n| ENT-Task | 检验任务 |\n| ENT-Sample | 样本 |\n",
+    "docs/input/models/ontology/domain.owl": "<?xml version=\"1.0\"?><rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:owl=\"http://www.w3.org/2002/07/owl#\"><owl:Class rdf:about=\"http://x#ENT-Task\"/><owl:Class rdf:about=\"http://x#ENT-Sample\"/></rdf:RDF>",
+    "docs/05-数据设计说明书.md": "# 数据设计说明书\n\n## 表结构\n\n| 表名 | 字段 |\n|---|---|\n| t_task | id, name |\n\n（未标注任何 entity_id 或 OWL IRI 回链）\n"
+  },
+  "expectBlocking": true,
+  "expectedBlockingContains": ["owl-traceability", "追溯链完全断裂"]
+}

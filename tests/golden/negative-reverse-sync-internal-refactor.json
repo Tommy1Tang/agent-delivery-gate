@@ -1,0 +1,23 @@
+{
+  "name": "reverse sync internal refactor (negative)",
+  "taskSummary": "对订单服务做内部重构和性能优化，无对外行为变化，按内部变更登记记录而非新增 FR。",
+  "workflowDomains": [],
+  "expectedWorkflowDomains": [
+    "change-management"
+  ],
+  "expectedRouteContains": [
+    "architect",
+    "backend-engineer",
+    "quality-gate-engineer",
+    "supervisor-auditor"
+  ],
+  "expectedRequiredDocuments": [
+    "docs/04-详细设计说明书.md",
+    "docs/19-监督审计.md"
+  ],
+  "expectedUiAffected": false,
+  "expectedSecuritySensitive": false,
+  "expectedConditionalRoleFlags": {
+    "performance-engineer": true
+  }
+}

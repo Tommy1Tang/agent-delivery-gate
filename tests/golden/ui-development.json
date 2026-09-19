@@ -1,0 +1,27 @@
+{
+  "name": "ui development task",
+  "taskSummary": "优化系统 UI 界面、页面视觉层级、响应式布局和 Element Plus 组件体验。",
+  "workflowDomains": [
+    "forward-development"
+  ],
+  "expectedWorkflowDomains": [
+    "forward-development"
+  ],
+  "expectedRouteContains": [
+    "ui-designer",
+    "frontend-engineer",
+    "browser-e2e-engineer"
+  ],
+  "expectedRequiredDocuments": [
+    "docs/01-需求规格书.md",
+    "docs/04-详细设计说明书.md",
+    "docs/16-E2E测试用例.md",
+    "docs/17-E2E测试报告.md"
+  ],
+  "expectedUiAffected": true,
+  "expectedSecuritySensitive": false,
+  "expectedConditionalRoleFlags": {
+    "ui-designer": true,
+    "performance-engineer": true
+  }
+}

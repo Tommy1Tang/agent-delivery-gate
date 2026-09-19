@@ -1,0 +1,7 @@
+{
+  "name": "P8-8: Preflight reject — task summary too short",
+  "taskSummary": "修改",
+  "workflowDomains": [],
+  "expectedStatus": "needs-clarification",
+  "expectedPlanContainsKeys": ["status", "questions"]
+}

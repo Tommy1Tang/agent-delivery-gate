@@ -1,0 +1,469 @@
+# software-development-team 统一大交付流程模型 —— 人类编辑孪生
+#
+# 真理源是 assets/config/skill-process.json（脚本只读 JSON，因为 PyYAML 非标准库，
+# 本 skill 全部脚本保持零第三方依赖）。本文件供人阅读与编辑，改完请同步 JSON。
+# 派生视图：python scripts/next_step.py --mermaid（禁止手工维护图）
+# 一致性校验：python scripts/next_step.py --skill-root . --check
+
+processId: PROC-SDT-DELIVERY
+version: 1.1.0
+authoritySource: false          # 真理源在 .json
+machineTruthSource: assets/config/skill-process.json
+entry: SP-01
+terminals:
+  done: SP-DONE
+  halt: SP-HALT
+
+conventions:
+  nodeIdPrefix: SP
+  prefixNamespaceNote: >
+    SP- 是 skill 自身流程节点的命名空间，与 docs/input/ 业务本体的
+    ND-/CAP-/RULE- 等前缀完全隔离，互不干扰。
+  docPathAliases: >
+    outputs[].paths 支持多路径别名，因为本 skill 历史上并存
+    docs/需求规格书.md 与 docs/01-需求规格书.md 两种命名；任一存在且非空即视为已产出。
+  whenValues: [always, input-contract-mode, conditional]
+  satisfactionRule: >
+    gate 节点：ledger.commands 中存在匹配命令且 status=pass。
+    role-dispatch 节点：ledger.roleRuns 中该角色 status 属于 acceptStatuses，
+    且 outputs 全部落盘非空。两者缺一不算完成。
+
+codeGateModes:
+  normal: startingProcessVersion=1.1.0；C-CODE-05/06 必须使用真实 pre-change impact 与 before/after diff，禁止 bootstrap code。
+  bootstrap: 同一 delivery 唯一 1.0.0→1.1.0；C05=NOT_APPLICABLE+BOOTSTRAP_NOT_APPLICABLE，C06=PASS+BOOTSTRAP_BASELINE_CREATED+baseline-creation+diffClaimed=false。
+  blocked: 版本、exact inventory、hash、token/history 或 repository/delivery 绑定失败即 BLOCK。
+  resolver: scripts/code_gate_mode.py#resolve_code_gate_mode
+
+phases:
+  - {phase: preflight,             name: 预检,       nodes: [SP-01, SP-01A, SP-02]}
+  - {phase: requirements,          name: 需求,       nodes: [SP-03]}
+  - {phase: design,                name: 设计,       nodes: [SP-04, SP-05, SP-06, SP-07, SP-08]}
+  - {phase: implementation,        name: 实现,       nodes: [SP-09, SP-10, SP-11, SP-12]}
+  - {phase: validation-and-review, name: 验证与评审, nodes: [SP-13, SP-14]}
+  - {phase: release,               name: 发布准备,   nodes: [SP-15]}
+  - {phase: closure,               name: 收口,       nodes: [SP-16, SP-17, SP-18]}
+
+reworkPolicy:
+  capPerRootCause: 5
+  capTotal: 10
+  onExceed: HALT
+  haltStatus: halted-pending-user
+  attributionSource: references/quality-gate-advanced-controls.md#QA-C
+  callbackTable: references/orchestrator-advanced-controls.md#OC-C
+  note: >
+    返工必须定向回调到 QA-C 归因的角色，不得全链重跑。
+    超出任一上限即挂起问用户，禁止以「已尽力」绕过。
+
+# ---------------------------------------------------------------------------
+# 节点（声明顺序即线性推进顺序；返工边通过 transitions 表达）
+# ---------------------------------------------------------------------------
+nodes:
+
+  - nodeId: SP-01
+    name: 环境预检
+    type: gate
+    phase: preflight
+    bpmnType: Service Task
+    when: always
+    command: python scripts/preflight_env_check.py --project-root . --json
+    satisfiedBy: {commandContains: preflight_env_check, requirePass: true}
+    transitions:
+      - {on: "exit==0",  to: SP-02}
+      - {on: "exit!=0",  to: SP-01A, note: 缺工具链即自动安装，禁止换栈}
+    governance: [references/environment-provisioning.md]
+    notes: PostgreSQL 16 / Redis 永不本地安装，此处只做部署服务器远程连通性检查。
+
+  - nodeId: SP-01A
+    name: 环境自动安装
+    type: gate
+    phase: preflight
+    bpmnType: Service Task
+    when: always
+    repairFor: SP-01          # 修复节点：不计入里程碑推进，仅回到 SP-01 复验
+    command: python scripts/provision_env.py
+    satisfiedBy: {commandContains: provision_env, requirePass: true}
+    transitions:
+      - {on: "exit==0",     to: SP-01, note: 安装后回到预检复验}
+      - {on: "retries>=3",  to: SP-HALT, haltStatus: halted-pending-user}
+    governance: [references/environment-provisioning.md]
+    notes: >
+      安装无需用户确认。仅当无权限/无网络/需交互/重试 3 次失败时挂起，
+      换栈只能由用户明确授权。
+
+  - nodeId: SP-02
+    name: 上游输入契约门禁
+    type: gate
+    phase: preflight
+    bpmnType: Business Rule Task
+    when: input-contract-mode
+    command: >
+      python scripts/validate_input_contract.py --project-root . --json
+      --gap-list-out docs/输入缺口清单.md
+    satisfiedBy: {commandContains: validate_input_contract, requirePass: false}
+    transitions:
+      - {on: "exit==0", to: SP-03,   note: "pass：跳过需求引导"}
+      - {on: "exit==1", to: SP-03,   note: "partial：先交付输入缺口清单，仅对 mustComplete 能力生成 PRD 草案"}
+      - {on: "exit==2", to: SP-HALT, haltStatus: halted-pending-user, note: "fail：禁止生成 PRD"}
+    governance: [references/prd-input-contract.md]
+    notes: docs/input/ 不存在时本节点跳过，Product Analyst 回退标准 Progressive Elicitation。
+
+  - nodeId: SP-03
+    name: 需求分析
+    type: role-dispatch
+    phase: requirements
+    bpmnType: User Task
+    when: always
+    role: product-analyst
+    promptFile: assets/prompts/product-analyst.prompt.md
+    inputs: ["docs/input/**"]
+    outputs:
+      - {artifact: 需求规格书, paths: [docs/需求规格书.md, docs/01-需求规格书.md]}
+    postcondition: python scripts/validate_prd_quality.py --project-root .
+    satisfiedBy: {roleRun: product-analyst, acceptStatuses: [completed]}
+    transitions:
+      - {on: "status==completed", to: SP-04}
+      - {on: "status==blocked",   to: SP-HALT, haltStatus: halted-pending-user}
+    skippable: false
+
+  - nodeId: SP-04
+    name: 架构设计
+    type: role-dispatch
+    phase: design
+    bpmnType: User Task
+    when: always
+    role: architect
+    promptFile: assets/prompts/architect.prompt.md
+    inputs: [docs/需求规格书.md]
+    outputs:
+      - {artifact: 开发计划,       paths: [docs/开发计划.md, docs/02-开发计划.md]}
+      - {artifact: 任务清单,       paths: [docs/任务清单.md, docs/03-任务清单.md]}
+      - {artifact: 详细设计说明书, paths: [docs/详细设计说明书.md, docs/04-详细设计说明书.md]}
+    satisfiedBy: {roleRun: architect, acceptStatuses: [completed]}
+    transitions:
+      - {on: "status==completed", to: SP-05}
+      - {on: "status==blocked",   to: SP-HALT, haltStatus: halted-pending-user}
+    skippable: false
+    notes: 不可跳过角色。任务清单须过零占位符自检与依赖环检测（S1-5 / S1-6）。
+
+  - nodeId: SP-05
+    name: 数据设计
+    type: role-dispatch
+    phase: design
+    bpmnType: User Task
+    when: conditional
+    role: data-engineer
+    promptFile: assets/prompts/data-engineer.prompt.md
+    conditionRef: references/workflow-matrix.md
+    conditionSummary: 数据模型复杂 / 需要迁移 / 大数据量
+    inputs: [docs/详细设计说明书.md]
+    outputs:
+      - {artifact: 数据设计说明书, paths: [docs/数据设计说明书.md, docs/05-数据设计说明书.md]}
+    satisfiedBy: {roleRun: data-engineer, acceptStatuses: [completed, skipped]}
+    transitions:
+      - {on: "status==completed", to: SP-06}
+      - {on: "status==skipped",   to: SP-06, requires: "reasonForSkip=objective-conditions-met + objectiveConditionsRef"}
+      - {on: "status==blocked",   to: SP-HALT, haltStatus: halted-pending-user}
+    skippable: true
+
+  - nodeId: SP-06
+    name: 接口数据契约
+    type: role-dispatch
+    phase: design
+    bpmnType: User Task
+    when: always
+    role: data-contract-designer
+    promptFile: assets/prompts/data-contract-designer.prompt.md
+    inputs: [docs/详细设计说明书.md]
+    outputs:
+      - {artifact: 接口数据契约, paths: [docs/接口数据契约.md, docs/07-接口数据契约.md]}
+    satisfiedBy: {roleRun: data-contract-designer, acceptStatuses: [completed]}
+    transitions:
+      - {on: "status==completed", to: SP-07}
+      - {on: "status==blocked",   to: SP-HALT, haltStatus: halted-pending-user}
+    skippable: false
+    notes: 契约冻结是 FE/BE 并行的前置条件（RED LINE 并行执行前置条件）。
+
+  - nodeId: SP-07
+    name: 性能设计
+    type: role-dispatch
+    phase: design
+    bpmnType: User Task
+    when: conditional
+    role: performance-engineer
+    promptFile: assets/prompts/performance-engineer.prompt.md
+    conditionRef: references/workflow-matrix.md
+    conditionSummary: 存在性能 SLA / 高并发 / 大数据量场景
+    inputs: [docs/详细设计说明书.md]
+    outputs:
+      - {artifact: 性能优化说明, paths: [docs/性能优化说明.md, docs/06-性能优化说明.md]}
+    satisfiedBy: {roleRun: performance-engineer, acceptStatuses: [completed, skipped]}
+    transitions:
+      - {on: "status==completed", to: SP-08}
+      - {on: "status==skipped",   to: SP-08, requires: "reasonForSkip=objective-conditions-met + objectiveConditionsRef"}
+      - {on: "status==blocked",   to: SP-HALT, haltStatus: halted-pending-user}
+    skippable: true
+
+  - nodeId: SP-08
+    name: UI 设计
+    type: role-dispatch
+    phase: design
+    bpmnType: User Task
+    when: conditional
+    role: ui-designer
+    promptFile: assets/prompts/design-ui-designer.md
+    conditionRef: references/workflow-matrix.md
+    conditionSummary: 涉及前端文件 / UI 组件新增或修改 / workflow domain 含 ui-development
+    inputs: [docs/需求规格书.md, assets/design.md]
+    outputs:
+      - {artifact: UI设计说明, paths: [docs/UI设计说明.md, docs/08-UI设计说明.md]}
+    satisfiedBy: {roleRun: ui-designer, acceptStatuses: [completed, skipped]}
+    transitions:
+      - {on: "status==completed", to: SP-09}
+      - {on: "status==skipped",   to: SP-09, requires: "reasonForSkip=objective-conditions-met + objectiveConditionsRef"}
+      - {on: "status==blocked",   to: SP-HALT, haltStatus: halted-pending-user}
+    skippable: true
+    notes: 必须先于 Frontend Engineer 执行。
+
+  - nodeId: SP-09
+    name: 跨层协调
+    type: role-dispatch
+    phase: implementation
+    bpmnType: User Task
+    when: conditional
+    role: execution-engineer
+    promptFile: assets/prompts/execution-engineer.prompt.md
+    conditionRef: references/workflow-matrix.md
+    conditionSummary: 任务跨前后端层（纯前端或纯后端任务可跳过）
+    inputs: [docs/任务清单.md, docs/接口数据契约.md]
+    outputs: []
+    satisfiedBy: {roleRun: execution-engineer, acceptStatuses: [completed, skipped]}
+    transitions:
+      # 并行网关（fork）：本节点后 SP-10 与 SP-11 同时就绪
+      - {on: "status==completed", to: SP-10}
+      - {on: "status==completed", to: SP-11}
+      - {on: "status==skipped",   to: SP-10, requires: "reasonForSkip=objective-conditions-met + objectiveConditionsRef"}
+      - {on: "status==skipped",   to: SP-11, requires: "reasonForSkip=objective-conditions-met + objectiveConditionsRef"}
+      - {on: "status==blocked",   to: SP-HALT, haltStatus: halted-pending-user}
+    skippable: true
+    bpmnGateway: Parallel Gateway (fork)
+    notes: 本节点后分叉为 SP-10 / SP-11 并行组，两者均完成才汇聚到 SP-12。
+
+  - nodeId: SP-10
+    name: 后端实现
+    type: role-dispatch
+    phase: implementation
+    bpmnType: User Task
+    when: conditional
+    role: backend-engineer
+    promptFile: assets/prompts/backend-engineer.prompt.md
+    conditionRef: references/workflow-matrix.md
+    conditionSummary: 任务包含后端范围
+    parallelGroup: implementation
+    parallelPrecondition: SP-06 接口契约已冻结且 lockedFiles 无交集（OC-D）
+    entryPrecondition: normal 需 C-CODE-05 PASS；唯一 bootstrap 需 NOT_APPLICABLE+BOOTSTRAP_NOT_APPLICABLE；BLOCK/UNKNOWN 禁止修改
+    requiredCodeGates: [C-CODE-05]
+    inputs: [docs/任务清单.md, docs/接口数据契约.md]
+    outputs: []
+    satisfiedBy: {roleRun: backend-engineer, acceptStatuses: [completed, skipped]}
+    transitions:
+      - {on: "status==completed", to: SP-12}
+      - {on: "status==skipped",   to: SP-12, requires: "reasonForSkip=objective-conditions-met + objectiveConditionsRef"}
+      - {on: "status==blocked",   to: SP-HALT, haltStatus: halted-pending-user}
+    skippable: true
+    notes: >
+      每个 changeSet 完成后须执行增量自审（Spec 合规 + 代码质量）。
+      与 SP-11 同属 implementation 并行组，两者均完成才进 SP-12（Parallel Gateway join）。
+
+  - nodeId: SP-11
+    name: 前端实现
+    type: role-dispatch
+    phase: implementation
+    bpmnType: User Task
+    when: conditional
+    role: frontend-engineer
+    promptFile: assets/prompts/frontend-engineer.prompt.md
+    conditionRef: references/workflow-matrix.md
+    conditionSummary: 任务包含前端范围
+    parallelGroup: implementation
+    parallelPrecondition: SP-06 接口契约已冻结且 lockedFiles 无交集（OC-D）
+    entryPrecondition: normal 需 C-CODE-05 PASS；唯一 bootstrap 需 NOT_APPLICABLE+BOOTSTRAP_NOT_APPLICABLE；BLOCK/UNKNOWN 禁止修改
+    requiredCodeGates: [C-CODE-05]
+    inputs: [docs/接口数据契约.md, docs/UI设计说明.md, assets/design.md]
+    outputs: []
+    satisfiedBy: {roleRun: frontend-engineer, acceptStatuses: [completed, skipped]}
+    transitions:
+      - {on: "status==completed", to: SP-12}
+      - {on: "status==skipped",   to: SP-12, requires: "reasonForSkip=objective-conditions-met + objectiveConditionsRef"}
+      - {on: "status==blocked",   to: SP-HALT, haltStatus: halted-pending-user}
+    skippable: true
+
+  - nodeId: SP-12
+    name: Smoke 前置门禁
+    type: gate
+    phase: implementation
+    bpmnType: Business Rule Task
+    when: always
+    entryPrecondition: normal 需 after index/trace/diff；bootstrap 需 after manifest/trace/inventory/baseline 且 C06=BOOTSTRAP_BASELINE_CREATED、diffClaimed=false
+    requiredCodeGates: [C-CODE-06]
+    command: python scripts/smoke_test.py --project-root .
+    satisfiedBy: {commandContains: smoke_test, requirePass: true}
+    transitions:
+      - {on: "exit==0", to: SP-13}
+      - {on: "exit!=0", to: REWORK, reworkTarget: "实现角色（SP-10 / SP-11）", note: "编译或启动失败禁止进入评审阶段（S2-1 互锁）"}
+    notes: smoke status=fail 时必须先重调实现角色修复，不得跳到质量门禁。
+
+  - nodeId: SP-13
+    name: 质量门禁
+    type: role-dispatch
+    phase: validation-and-review
+    bpmnType: User Task
+    when: always
+    entryPrecondition: 独立复验 C-CODE-01..06；bootstrap 只允许冻结的 C05/C06 特例，normal 禁止 bootstrap code
+    requiredCodeGates: [C-CODE-01, C-CODE-02, C-CODE-03, C-CODE-04, C-CODE-05, C-CODE-06]
+    role: quality-gate-engineer
+    promptFile: assets/prompts/quality-gate-engineer.prompt.md
+    inputs: [docs/需求规格书.md, docs/任务清单.md, docs/接口数据契约.md]
+    outputs:
+      - {artifact: 单元测试用例, paths: [docs/单元测试用例.md, docs/10-单元测试用例.md]}
+      - {artifact: 单元测试报告, paths: [docs/单元测试报告.md, docs/11-单元测试报告.md]}
+      - {artifact: 集成测试用例, paths: [docs/集成测试用例.md, docs/12-集成测试用例.md]}
+      - {artifact: 集成测试报告, paths: [docs/集成测试报告.md, docs/13-集成测试报告.md]}
+      - {artifact: 代码评审,     paths: [docs/代码评审.md, docs/14-代码评审.md]}
+    conditionalOutputs:
+      - {artifact: 安全评审, paths: [docs/安全评审.md, docs/15-安全评审.md], when: 安全敏感范围被涉及}
+    satisfiedBy: {roleRun: quality-gate-engineer, acceptStatuses: [completed]}
+    transitions:
+      - {on: "verdict==PASS",  to: SP-14}
+      - {on: "verdict==BLOCK", to: REWORK, reworkTarget: 按 QA-C 根因归因定向回调, note: 禁止呈报用户等指示，Leader 必须自动派发修复}
+      - {on: "status==blocked", to: SP-HALT, haltStatus: halted-pending-user}
+    skippable: false
+    hardThresholds:
+      unitCoverageMin: 90.0
+      integrationCoverageMin: 80.0
+      testPassRate: 100.0
+      testCasesImplemented: ">0"
+    notes: 不可跳过角色。「环境问题 / JDK 兼容性」不能作为跳过指标的理由。
+
+  - nodeId: SP-14
+    name: E2E 测试
+    type: role-dispatch
+    phase: validation-and-review
+    bpmnType: User Task
+    when: always
+    role: browser-e2e-engineer
+    promptFile: assets/prompts/browser-e2e-engineer.prompt.md
+    inputs: [docs/需求规格书.md]
+    outputs:
+      - {artifact: E2E测试用例, paths: [docs/E2E测试用例.md, docs/16-E2E测试用例.md]}
+      - {artifact: E2E测试报告, paths: [docs/E2E测试报告.md, docs/17-E2E测试报告.md]}
+    satisfiedBy: {roleRun: browser-e2e-engineer, acceptStatuses: [completed]}
+    transitions:
+      - {on: "passRate==100", to: SP-15}
+      - {on: "passRate<100",  to: REWORK, reworkTarget: 按缺陷归因定向回调}
+      - {on: "status==blocked", to: SP-HALT, haltStatus: halted-pending-user}
+    skippable: false
+    hardThresholds:
+      e2ePassRate: 100.0
+      e2eMinCaseCount: 1
+      p0AcCoverage: 全部 P0 验收条目
+    notes: >
+      RED LINE：每个交付必做，无例外。禁止以「项目太小」「仅后端」「无 UI 交互」
+      「环境不可用」跳过。纯后端交付须通过 CLI/HTTP 公开入口实跑至少一个端到端场景。
+
+  - nodeId: SP-15
+    name: 部署准备
+    type: role-dispatch
+    phase: release
+    bpmnType: User Task
+    when: always
+    role: devops-release-engineer
+    promptFile: assets/prompts/devops-release-engineer.prompt.md
+    inputs: [docs/详细设计说明书.md]
+    outputs:
+      - {artifact: 部署说明, paths: [docs/部署说明.md, docs/18-部署说明.md]}
+    satisfiedBy: {roleRun: devops-release-engineer, acceptStatuses: [completed]}
+    transitions:
+      - {on: "status==completed", to: SP-16}
+      - {on: "status==blocked",   to: SP-HALT, haltStatus: halted-pending-user}
+    skippable: false
+
+  - nodeId: SP-16
+    name: 文档整理
+    type: role-dispatch
+    phase: closure
+    bpmnType: User Task
+    when: always
+    role: documentation-writer
+    promptFile: assets/prompts/documentation-writer.prompt.md
+    inputs: ["docs/**"]
+    outputs: []
+    satisfiedBy: {roleRun: documentation-writer, acceptStatuses: [completed]}
+    transitions:
+      - {on: "status==completed", to: SP-17}
+      - {on: "status==blocked",   to: SP-HALT, haltStatus: halted-pending-user}
+    skippable: false
+    entryPrecondition: >
+      Code Review = PASS 且 Security Review = PASS 且所有 BLOCK 级 finding 已修复验证
+      且单元/E2E 硬指标全部达标
+
+  - nodeId: SP-17
+    name: 监督审计
+    type: role-dispatch
+    phase: closure
+    bpmnType: User Task
+    when: always
+    role: supervisor-auditor
+    promptFile: assets/prompts/supervisor-auditor.prompt.md
+    inputs: ["docs/**", evidence-ledger.json]
+    outputs:
+      - {artifact: 监督审计,     paths: [docs/监督审计.md, docs/19-监督审计.md]}
+      - {artifact: 可观测性报告, paths: [docs/可观测性报告.md]}
+      - {artifact: 执行日志,     paths: [docs/执行日志.md]}
+    satisfiedBy: {roleRun: supervisor-auditor, acceptStatuses: [completed]}
+    transitions:
+      - {on: "status==completed", to: SP-18}
+      - {on: "status==blocked",   to: SP-HALT, haltStatus: halted-pending-user}
+    skippable: false
+    notes: >
+      不可跳过角色。须核验节点覆盖完整性、文档完整性、验证证据、风险披露与时间追踪数据。
+
+  - nodeId: SP-18
+    name: 交付验收门禁
+    type: gate
+    phase: closure
+    bpmnType: Business Rule Task
+    when: always
+    entryPrecondition: 终检共享 mode resolver 重放 C-CODE-01..07；bootstrap C07 复算全部激活 hash，后续 delivery 恢复 normal
+    requiredCodeGates: [C-CODE-01, C-CODE-02, C-CODE-03, C-CODE-04, C-CODE-05, C-CODE-06, C-CODE-07]
+    command: python scripts/validate_delivery.py --skill-root <skill-root> --project-root .
+    satisfiedBy: {commandContains: validate_delivery, requirePass: true}
+    transitions:
+      - {on: "exit==0", to: SP-DONE}
+      - {on: "exit!=0", to: REWORK, reworkTarget: 按 blocking 原因定向回调对应角色}
+    notes: 终检会重放输入契约门禁与全部内容门禁；声称通过但实际 fail 会在此暴露。
+
+  - nodeId: SP-DONE
+    name: 交付完成
+    type: terminal
+    phase: closure
+    bpmnType: End Event
+    deliveryStatus: completed
+    transitions: []
+    notes: >
+      只有 SP-18 exit==0 才允许到达。任何未达标状态必须走 SP-HALT，
+      禁止以「基本完成」「部分交付」措辞包装。
+
+  - nodeId: SP-HALT
+    name: 中断挂起
+    type: terminal
+    phase: any
+    bpmnType: Boundary Error Event
+    deliveryStatusOptions:
+      - halted-pending-user
+      - halted-circuit-broken
+      - halted-multi-crash
+      - halted-user-cancel
+      - failed-closed
+    transitions: []
+    governance: [references/halt-and-resume-policy.md]
+    notes: 必须写入具体 deliveryStatus 并披露原因，不得伪装为完成。

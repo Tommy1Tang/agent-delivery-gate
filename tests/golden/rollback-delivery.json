@@ -1,0 +1,33 @@
+{
+  "name": "rollback delivery after failed hotfix",
+  "taskSummary": "线上紧急回滚：上一次 hotfix 导致支付接口 500 错误率飙升至 30%，需要立即回滚到上一个稳定版本并修复根因。",
+  "workflowDomains": [
+    "incident-management"
+  ],
+  "expectedWorkflowDomains": [
+    "incident-management"
+  ],
+  "expectedRouteContains": [
+    "product-analyst",
+    "architect",
+    "backend-engineer",
+    "quality-gate-engineer",
+    "browser-e2e-engineer",
+    "devops-release-engineer",
+    "supervisor-auditor"
+  ],
+  "expectedRequiredDocuments": [
+    "docs/01-需求规格书.md",
+    "docs/04-详细设计说明书.md",
+    "docs/16-E2E测试用例.md",
+    "docs/17-E2E测试报告.md",
+    "docs/19-监督审计.md"
+  ],
+  "expectedUiAffected": false,
+  "expectedSecuritySensitive": false,
+  "expectedPlanSnapshot": {
+    "stackDetection": {
+      "deterministic": true
+    }
+  }
+}

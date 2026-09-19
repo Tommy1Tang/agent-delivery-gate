@@ -1,0 +1,35 @@
+# Normalise line endings so the repo is stable across Windows / macOS / Linux.
+# Core rule: text files are stored as LF in the repository; Windows checkouts may
+# use CRLF locally. Binary assets are never touched.
+
+* text=auto
+
+# --- explicit text types ---------------------------------------------------
+*.py      text diff=python
+*.md      text diff=markdown
+*.json    text
+*.yaml    text
+*.yml     text
+*.toml    text
+*.cfg     text
+*.ini     text
+*.txt     text
+*.sh      text eol=lf
+*.ps1     text eol=crlf
+*.bat     text eol=crlf
+.gitignore text
+.gitattributes text
+
+# --- binary types ----------------------------------------------------------
+*.png     binary
+*.jpg     binary
+*.jpeg    binary
+*.gif     binary
+*.ico     binary
+*.pdf     binary
+*.zip     binary
+*.gz      binary
+*.whl     binary
+*.db      binary
+*.sqlite  binary
+*.coverage binary

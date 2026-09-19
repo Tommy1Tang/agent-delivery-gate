@@ -1,0 +1,32 @@
+{
+  "name": "ENV: provision dry-run on a fresh OS plans all five toolchains, python user-scope, no postgresql/redis ever",
+  "kind": "env-provision-dry-run",
+  "simulatedTools": {
+    "winget": true
+  },
+  "expectedToolStatus": {
+    "git": "would-install",
+    "java": "would-install",
+    "node": "would-install",
+    "maven": "would-install",
+    "python": "would-install"
+  },
+  "expectedPlannedCommandsContain": {
+    "git": [
+      "winget install Git.Git",
+      "--silent"
+    ],
+    "java": [
+      "winget install Microsoft.OpenJDK.17"
+    ],
+    "node": [
+      "OpenJS.NodeJS.LTS",
+      "--version 22"
+    ],
+    "python": [
+      "Python.Python.3.12",
+      "--scope user"
+    ]
+  },
+  "assertNoLocalDbCommands": true
+}

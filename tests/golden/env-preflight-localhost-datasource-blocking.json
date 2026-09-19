@@ -1,0 +1,25 @@
+{
+  "name": "ENV: dev config points at localhost PostgreSQL/Redis -> guard blocks (must use deployment server)",
+  "kind": "env-preflight",
+  "simulatedTools": {
+    "java": "openjdk version \"17.0.10\" 2024-01-16",
+    "node": "v22.11.0",
+    "mvn": "Apache Maven 3.9.9",
+    "python": "Python 3.12.9",
+    "py312": true,
+    "git": "git version 2.47.1.windows.2"
+  },
+  "simulatedRemote": {
+    "postgresql": true,
+    "redis": true
+  },
+  "projectFixture": {
+    "backend/src/main/resources/application-dev.yml": "spring:\n  datasource:\n    url: jdbc:postgresql://localhost:5432/demo\n  data:\n    redis:\n      url: redis://127.0.0.1:6379\n",
+    ".env": "DB_HOST=localhost\n"
+  },
+  "expectedStatus": "not-ready",
+  "expectedBlockingContains": [
+    "dev config points at localhost PostgreSQL/Redis",
+    "application-dev.yml"
+  ]
+}

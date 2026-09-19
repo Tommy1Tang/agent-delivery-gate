@@ -1,0 +1,230 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.qoder/skills/software-development-team/handoff.schema.json",
+  "title": "Orchestrator Handoff",
+  "type": "object",
+  "required": [
+    "roleId",
+    "roleName",
+    "taskSummary",
+    "requiredFiles",
+    "prohibitedOverreach",
+    "outputResponsibilities",
+    "completionStandards",
+    "risksAndQuestions"
+  ],
+  "globalDefaults": {
+    "description": "以下全局治理文件为所有角色隐式必读，无需在 Handoff 中重复声明：assets/constitution.md, assets/tech.md, references/local-governance.md, references/team-overview.md, references/team-workflow.md",
+    "implicitGovernanceFiles": [
+      "assets/constitution.md",
+      "assets/tech.md",
+      "references/local-governance.md",
+      "references/team-overview.md",
+      "references/team-workflow.md"
+    ]
+  },
+  "definitions": {
+    "retryPolicy": {
+      "type": "object",
+      "description": "Retry configuration for this role",
+      "required": ["maxRetries", "backoffMs"],
+      "properties": {
+        "maxRetries": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5,
+          "default": 2,
+          "description": "Maximum retry attempts before escalating"
+        },
+        "backoffMs": {
+          "type": "integer",
+          "minimum": 1000,
+          "default": 5000,
+          "description": "Initial backoff delay in milliseconds, doubles each retry"
+        },
+        "retryableErrors": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["timeout", "session-lost", "needs-info", "transient"]
+          },
+          "default": ["timeout", "session-lost", "transient"],
+          "description": "Error types that are safe to retry"
+        },
+        "nonRetryableErrors": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["blocked", "failed", "security-block", "cancelled"]
+          },
+          "default": ["blocked", "security-block", "cancelled"],
+          "description": "Error types that must NOT be retried — escalate immediately"
+        }
+      }
+    }
+  },
+  "properties": {
+    "roleId": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "roleName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "taskSummary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "workflowDomains": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "enum": [
+          "forward-development",
+          "change-management",
+          "security-governance",
+          "incident-management"
+        ]
+      },
+      "description": "仅供 planning/review 角色使用（Product Analyst, Architect, Quality Gate Engineer, Supervisor Auditor），其他角色在 Handoff 中省略此字段"
+    },
+    "acceptanceLevel": {
+      "type": "string",
+      "enum": [
+        "iteration",
+        "system",
+        "regulated",
+        "regression",
+        "patch"
+      ],
+      "default": "iteration",
+      "description": "验收级别：iteration=普通迭代，system=系统级验收，regulated=受监管软件验收，regression=多轮迭代回归，patch=上市维护补丁。Quality Gate Engineer 根据此值决定是否启用系统级验收扩展段（§A–§H）"
+    },
+    "governanceConstraints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "仅用于角色特殊治理约束（如 Quality Gate Engineer 需要额外读取 security-governance-workflow.md）。全局治理文件已隐式必读，无需在此重复列出"
+    },
+    "requiredFiles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "prohibitedOverreach": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "outputResponsibilities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "completionStandards": {
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "引用格式，默认使用角色 prompt 的验证清单章节。例如：参见角色 prompt 的验证清单章节"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "具体完成标准条目列表，仅在有任务特殊标准（区别于 prompt 中的通用标准）时使用"
+        }
+      ],
+      "default": "参见角色 prompt 的验证清单章节"
+    },
+    "risksAndQuestions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "upstreamPendingItems": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "editMode": {
+      "type": "string",
+      "enum": [
+        "analysis-only",
+        "write-docs",
+        "write-code",
+        "review-only",
+        "validate-only"
+      ],
+      "default": "analysis-only"
+    },
+    "timeoutMs": {
+      "type": "integer",
+      "minimum": 10000,
+      "default": 300000,
+      "description": "Maximum wall-clock time in milliseconds before the role is considered timed out (default 5 min)"
+    },
+    "retryPolicy": {
+      "$ref": "#/definitions/retryPolicy",
+      "description": "Retry configuration for this role。全局默认：maxRetries=2, backoffMs=5000, retryableErrors=[timeout, session-lost, transient], nonRetryableErrors=[blocked, security-block, cancelled]。仅在角色有特殊重试需求时覆盖",
+      "default": {
+        "maxRetries": 2,
+        "backoffMs": 5000,
+        "retryableErrors": ["timeout", "session-lost", "transient"],
+        "nonRetryableErrors": ["blocked", "security-block", "cancelled"]
+      }
+    },
+    "dependsOn": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Role IDs that must complete successfully before this role can start"
+    },
+    "parallelGroup": {
+      "type": "string",
+      "default": "",
+      "description": "If set, this role can execute in parallel with others in the same group. Group failure policy: fail-fast (default) or continue-on-error."
+    },
+    "parallelFailurePolicy": {
+      "type": "string",
+      "enum": ["fail-fast", "continue-on-error"],
+      "default": "fail-fast",
+      "description": "When parallelGroup is set, whether one failure cancels the rest or allows partial completion"
+    },
+    "reverseSyncTasks": {
+      "type": "array",
+      "default": [],
+      "description": "Reverse-sync tasks dispatched alongside this handoff. Triggered when PRD Sync Gate detects code/PRD drift. See references/reverse-sync-workflow.md and references/reverse-sync-template.md.",
+      "items": {
+        "type": "object",
+        "required": ["taskId", "driftType", "driftSource"],
+        "properties": {
+          "taskId": {"type": "string", "description": "Reverse-sync task identifier, e.g. RS-001"},
+          "driftType": {
+            "type": "string",
+            "enum": ["api", "schema", "ui-flow", "config", "behavior"]
+          },
+          "driftSource": {"type": "string", "description": "commit hash / PR id / hotfix ticket"},
+          "originFRId": {"type": "string", "description": "Existing FR/NFR id, 'new' for Path B, 'internal' for Path C"},
+          "closurePath": {"type": "string", "enum": ["path-a-amend", "path-b-new-fr", "path-c-internal"]},
+          "prdSections": {"type": "array", "items": {"type": "string"}, "description": "docs/* sections to back-fill"},
+          "description": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

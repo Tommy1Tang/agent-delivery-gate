@@ -1,0 +1,26 @@
+{
+  "name": "PROCESS: ontology relations are materialised into a walkable graph, impact queries resolve",
+  "kind": "next-step",
+  "expectedGraph": {
+    "minNodeKinds": {"process-node": 21, "role": 14, "artifact": 20},
+    "minEdgePredicates": {"dispatches": 14, "produces": 20, "requires": 10, "precedes": 20}
+  },
+  "expectedImpact": {
+    "接口数据契约": {
+      "directConsumers": ["node:SP-10", "node:SP-11", "node:SP-13"],
+      "impactedNodes": ["node:SP-12", "node:SP-14", "node:SP-18"],
+      "impactedRoles": ["role:backend-engineer", "role:frontend-engineer", "role:quality-gate-engineer"],
+      "directConsumersNot": ["node:SP-03", "node:SP-04"],
+      "impactedNodesNot": ["node:SP-01", "node:SP-03"]
+    },
+    "backend-engineer": {
+      "directConsumers": ["node:SP-10"],
+      "impactedNodes": ["node:SP-12", "node:SP-13", "node:SP-14"],
+      "impactedNodesNot": ["node:SP-04", "node:SP-06"]
+    },
+    "SP-13": {
+      "impactedNodes": ["node:SP-13", "node:SP-14", "node:SP-15", "node:SP-16", "node:SP-17", "node:SP-18"],
+      "impactedNodesNot": ["node:SP-03", "node:SP-12"]
+    }
+  }
+}

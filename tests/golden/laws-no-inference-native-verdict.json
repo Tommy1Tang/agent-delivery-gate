@@ -1,0 +1,56 @@
+{
+  "name": "LAWS: no-inference (LAW-4) — verdict guard reads native field only, never reverse-engineered",
+  "kind": "next-step",
+  "assertModelConsistent": true,
+  "ledger": {
+    "taskName": "LAW-4 no-inference regression",
+    "createdAt": "2026-07-29T10:00:00",
+    "deliveryStatus": "in-progress",
+    "roleRuns": [
+      {"roleId": "product-analyst", "status": "completed", "durationMs": 1},
+      {"roleId": "architect", "status": "completed", "durationMs": 1},
+      {"roleId": "data-engineer", "status": "skipped", "durationMs": 1, "reasonForSkip": "objective-conditions-met", "objectiveConditionsRef": ["workflow-matrix.md 数据模型不复杂"]},
+      {"roleId": "data-contract-designer", "status": "completed", "durationMs": 1},
+      {"roleId": "performance-engineer", "status": "skipped", "durationMs": 1, "reasonForSkip": "objective-conditions-met", "objectiveConditionsRef": ["workflow-matrix.md 无性能 SLA"]},
+      {"roleId": "ui-designer", "status": "skipped", "durationMs": 1, "reasonForSkip": "objective-conditions-met", "objectiveConditionsRef": ["workflow-matrix.md 无前端变更"]},
+      {"roleId": "execution-engineer", "status": "skipped", "durationMs": 1, "reasonForSkip": "objective-conditions-met", "objectiveConditionsRef": ["workflow-matrix.md 纯后端任务"]},
+      {"roleId": "backend-engineer", "status": "completed", "durationMs": 1},
+      {"roleId": "frontend-engineer", "status": "skipped", "durationMs": 1, "reasonForSkip": "objective-conditions-met", "objectiveConditionsRef": ["workflow-matrix.md 无前端范围"]},
+      {"roleId": "quality-gate-engineer", "status": "completed", "durationMs": 1}
+    ],
+    "commands": [
+      {"command": "python scripts/preflight_env_check.py --project-root . --json", "status": "pass", "durationMs": 1, "exitCode": 0},
+      {"command": "python scripts/smoke_test.py --project-root .", "status": "pass", "durationMs": 1, "exitCode": 0}
+    ],
+    "artifacts": [],
+    "qualityGates": [
+      {
+        "gateName": "code-review",
+        "gateType": "code-review",
+        "status": "pass",
+        "verdict": "PASS",
+        "checks": [{"name": "命名规范", "status": "pass"}]
+      }
+    ],
+    "observability": {}
+  },
+  "projectFixture": {
+    "docs/01-需求规格书.md": "# 需求规格书\n\nFR-001\n",
+    "docs/02-开发计划.md": "# 开发计划\n",
+    "docs/03-任务清单.md": "# 任务清单\n",
+    "docs/04-详细设计说明书.md": "# 详细设计说明书\n",
+    "docs/07-接口数据契约.md": "# 接口数据契约\n",
+    "docs/10-单元测试用例.md": "# 单元测试用例\n",
+    "docs/11-单元测试报告.md": "# 单元测试报告\n",
+    "docs/12-集成测试用例.md": "# 集成测试用例\n",
+    "docs/13-集成测试报告.md": "# 集成测试报告\n",
+    "docs/14-代码评审.md": "# 代码评审\n\nverdict: PASS\n"
+  },
+  "expectedState": "actionable",
+  "expectedCurrentNode": "SP-14",
+  "expectedRole": "browser-e2e-engineer",
+  "expectedFiredTransitions": {
+    "SP-13": "verdict==PASS -> SP-14",
+    "SP-12": "exit==0 -> SP-13"
+  }
+}

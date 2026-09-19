@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.qoder/skills/software-development-team/code-query.schema.json",
+  "title": "Controlled Code Query Response",
+  "type": "object",
+  "required": ["schemaVersion", "queryStatus", "intent", "normalizedTarget", "answerFacts", "candidates", "symbols", "relationPaths", "boundaryRelationships", "boundarySummary", "relationshipCoverageSummary", "manifestHash", "sourceDigest", "diagnostics", "generatedAt"],
+  "properties": {
+    "schemaVersion": {"const": "1.1.0"},
+    "queryStatus": {"enum": ["ANSWERED", "NO_MATCH", "AMBIGUOUS", "UNKNOWN", "UNSUPPORTED_INTENT"]},
+    "intent": {"type": ["string", "null"]},
+    "normalizedTarget": {"type": ["string", "null"]},
+    "answerFacts": {"type": "array", "items": {"type": "string"}},
+    "candidates": {"type": "array", "items": {"type": "object"}},
+    "symbols": {"type": "array", "items": {"type": "object"}},
+    "relationPaths": {"type": "array", "items": {"$ref": "#/$defs/path"}},
+    "boundaryRelationships": {"type": "array", "items": {"type": "object"}},
+    "boundarySummary": {"$ref": "#/$defs/boundarySummary"},
+    "relationshipCoverageSummary": {"type": "object"},
+    "manifestHash": {"type": ["string", "null"], "pattern": "^sha256:[0-9a-f]{64}$"},
+    "sourceDigest": {"type": ["string", "null"], "pattern": "^sha256:[0-9a-f]{64}$"},
+    "diagnostics": {"type": "array", "items": {"type": "string"}},
+    "generatedAt": {"type": "string"}
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "path": {
+      "type": "object", "required": ["nodeIds", "types", "length"],
+      "properties": {"nodeIds": {"type": "array", "minItems": 2, "items": {"$ref": "#/$defs/hash"}}, "types": {"type": "array", "minItems": 1, "items": {"type": "string"}}, "length": {"type": "integer", "minimum": 1}},
+      "additionalProperties": false
+    },
+    "countRow": {
+      "type": "object", "required": ["key", "count"],
+      "properties": {"key": {"type": "string"}, "count": {"type": "integer", "minimum": 0}},
+      "additionalProperties": false
+    },
+    "boundarySummary": {
+      "type": "object", "required": ["total", "byType", "byClass", "byKind", "traversalStopped"],
+      "properties": {
+        "total": {"type": "integer", "minimum": 0}, "byType": {"type": "array", "items": {"$ref": "#/$defs/countRow"}},
+        "byClass": {"type": "array", "items": {"$ref": "#/$defs/countRow"}}, "byKind": {"type": "array", "items": {"$ref": "#/$defs/countRow"}}, "traversalStopped": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

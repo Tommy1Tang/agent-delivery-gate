@@ -1,0 +1,7 @@
+{
+  "name": "P8-8: Preflight reject — contradictory signals (同时新增和删除同一组件)",
+  "taskSummary": "新增 Redis 缓存层的同时删除 Redis 相关配置和依赖",
+  "workflowDomains": [],
+  "expectedStatus": "needs-clarification",
+  "expectedPlanContainsKeys": ["status", "questions"]
+}

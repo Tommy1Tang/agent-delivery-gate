@@ -1,0 +1,27 @@
+{
+  "name": "reverse sync hotfix detection",
+  "taskSummary": "线上接口 hotfix：紧急新增 POST /api/orders/refund 端点修复支付故障，需要补充测试并重基线需求规格书。",
+  "workflowDomains": [],
+  "expectedWorkflowDomains": [
+    "incident-management",
+    "change-management"
+  ],
+  "expectedRouteContains": [
+    "product-analyst",
+    "architect",
+    "data-contract-designer",
+    "backend-engineer",
+    "quality-gate-engineer",
+    "browser-e2e-engineer",
+    "documentation-writer",
+    "supervisor-auditor"
+  ],
+  "expectedRequiredDocuments": [
+    "docs/01-需求规格书.md",
+    "docs/04-详细设计说明书.md",
+    "docs/07-接口数据契约.md",
+    "docs/19-监督审计.md"
+  ],
+  "expectedUiAffected": false,
+  "expectedSecuritySensitive": false
+}

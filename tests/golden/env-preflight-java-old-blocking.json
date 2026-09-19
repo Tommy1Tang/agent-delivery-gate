@@ -1,0 +1,16 @@
+{
+  "name": "ENV: legacy JDK 8 -> below JDK 17 baseline is blocking",
+  "kind": "env-preflight",
+  "simulatedTools": {
+    "java": "java version \"1.8.0_391\"",
+    "node": "v22.11.0",
+    "mvn": "Apache Maven 3.9.9",
+    "python": "Python 3.12.9",
+    "py312": true,
+    "git": "git version 2.47.1.windows.2"
+  },
+  "expectedStatus": "not-ready",
+  "expectedBlockingContains": [
+    "JDK 17 baseline"
+  ]
+}

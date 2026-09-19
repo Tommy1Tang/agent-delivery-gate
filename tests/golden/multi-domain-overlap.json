@@ -1,0 +1,36 @@
+{
+  "name": "multi-domain overlapping (security + incident + change)",
+  "taskSummary": "紧急修复：发现 SQL 注入漏洞导致用户数据泄露，需要立即修复漏洞、变更数据库访问层架构、添加 WAF 规则并重基线安全策略。",
+  "workflowDomains": [
+    "security-governance",
+    "incident-management",
+    "change-management"
+  ],
+  "expectedWorkflowDomains": [
+    "change-management",
+    "incident-management",
+    "security-governance"
+  ],
+  "expectedRouteContains": [
+    "product-analyst",
+    "architect",
+    "backend-engineer",
+    "quality-gate-engineer",
+    "browser-e2e-engineer",
+    "supervisor-auditor"
+  ],
+  "expectedRequiredDocuments": [
+    "docs/01-需求规格书.md",
+    "docs/04-详细设计说明书.md",
+    "docs/16-E2E测试用例.md",
+    "docs/17-E2E测试报告.md",
+    "docs/19-监督审计.md"
+  ],
+  "expectedUiAffected": false,
+  "expectedSecuritySensitive": true,
+  "expectedPlanSnapshot": {
+    "stackDetection": {
+      "deterministic": true
+    }
+  }
+}

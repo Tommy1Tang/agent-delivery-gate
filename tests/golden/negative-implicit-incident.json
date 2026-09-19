@@ -1,0 +1,30 @@
+{
+  "name": "negative: implicit incident trigger must not be bypassed by explicit forward-development domain",
+  "taskSummary": "线上故障紧急修复，订单服务出现 bug 需要回滚和根因分析。",
+  "workflowDomains": [
+    "forward-development"
+  ],
+  "expectedWorkflowDomains": [
+    "forward-development",
+    "incident-management"
+  ],
+  "expectedRouteContains": [
+    "product-analyst",
+    "architect",
+    "execution-engineer",
+    "quality-gate-engineer",
+    "devops-release-engineer",
+    "documentation-writer",
+    "supervisor-auditor"
+  ],
+  "expectedRequiredDocuments": [
+    "docs/01-需求规格书.md",
+    "docs/04-详细设计说明书.md",
+    "docs/11-单元测试报告.md",
+    "docs/13-集成测试报告.md",
+    "docs/18-部署说明.md",
+    "docs/19-监督审计.md"
+  ],
+  "expectedUiAffected": false,
+  "expectedSecuritySensitive": false
+}

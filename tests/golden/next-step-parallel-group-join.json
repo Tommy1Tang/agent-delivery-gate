@@ -1,0 +1,38 @@
+{
+  "name": "PROCESS: implementation parallel group (SP-10/SP-11) both required before SP-12 join",
+  "kind": "next-step",
+  "ledger": {
+    "taskName": "parallel group regression",
+    "createdAt": "2026-07-29T10:00:00",
+    "deliveryStatus": "in-progress",
+    "roleRuns": [
+      {"roleId": "product-analyst", "status": "completed", "durationMs": 1},
+      {"roleId": "architect", "status": "completed", "durationMs": 1},
+      {"roleId": "data-engineer", "status": "skipped", "durationMs": 1, "reasonForSkip": "objective-conditions-met", "objectiveConditionsRef": ["workflow-matrix.md 数据模型不复杂"]},
+      {"roleId": "data-contract-designer", "status": "completed", "durationMs": 1},
+      {"roleId": "performance-engineer", "status": "skipped", "durationMs": 1, "reasonForSkip": "objective-conditions-met", "objectiveConditionsRef": ["workflow-matrix.md 无性能 SLA"]},
+      {"roleId": "ui-designer", "status": "skipped", "durationMs": 1, "reasonForSkip": "objective-conditions-met", "objectiveConditionsRef": ["workflow-matrix.md 无前端变更"]},
+      {"roleId": "execution-engineer", "status": "skipped", "durationMs": 1, "reasonForSkip": "objective-conditions-met", "objectiveConditionsRef": ["workflow-matrix.md 纯后端任务"]},
+      {"roleId": "backend-engineer", "status": "completed", "durationMs": 1}
+    ],
+    "commands": [
+      {"command": "python scripts/preflight_env_check.py --project-root . --json", "status": "pass", "durationMs": 1}
+    ],
+    "artifacts": [],
+    "qualityGates": [],
+    "observability": {}
+  },
+  "projectFixture": {
+    "docs/01-需求规格书.md": "# 需求规格书\n\nFR-001\n",
+    "docs/02-开发计划.md": "# 开发计划\n",
+    "docs/03-任务清单.md": "# 任务清单\n",
+    "docs/04-详细设计说明书.md": "# 详细设计说明书\n",
+    "docs/07-接口数据契约.md": "# 接口数据契约\n"
+  },
+  "expectedState": "actionable",
+  "expectedCurrentNode": "SP-11",
+  "expectedRole": "frontend-engineer",
+  "expectedCompletedContains": ["SP-10 后端实现", "SP-06 接口数据契约"],
+  "expectedUnmetContains": ["frontend-engineer"],
+  "expectedNotApplicableContains": ["SP-02"]
+}

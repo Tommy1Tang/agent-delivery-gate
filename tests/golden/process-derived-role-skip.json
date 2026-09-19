@@ -1,0 +1,28 @@
+{
+  "name": "PROCESS: mandatory role skip is rejected by process policy",
+  "kind": "next-step",
+  "ledger": {
+    "taskName": "mandatory skip",
+    "createdAt": "2026-08-28T00:00:00Z",
+    "deliveryStatus": "in-progress",
+    "roleRuns": [
+      {"roleId": "product-analyst", "status": "completed", "durationMs": 1},
+      {"roleId": "architect", "status": "completed", "durationMs": 1},
+      {"roleId": "data-engineer", "status": "skipped", "reasonForSkip": "objective-conditions-met", "objectiveConditionsRef": ["no database"], "durationMs": 1},
+      {"roleId": "data-contract-designer", "status": "skipped", "reasonForSkip": "objective-conditions-met", "objectiveConditionsRef": ["invalid attempt"], "durationMs": 1}
+    ],
+    "commands": [{"command": "python scripts/preflight_env_check.py --project-root . --json", "status": "pass", "exitCode": 0, "durationMs": 1}],
+    "artifacts": [], "qualityGates": [], "observability": {}
+  },
+  "projectFixture": {
+    "docs/01-需求规格书.md": "# PRD\n",
+    "docs/02-开发计划.md": "# Plan\n",
+    "docs/03-任务清单.md": "# Tasks\n",
+    "docs/04-详细设计说明书.md": "# Design\n",
+    "docs/07-接口数据契约.md": "# Contract\n"
+  },
+  "expectedState": "actionable",
+  "expectedCurrentNode": "SP-06",
+  "expectedRole": "data-contract-designer",
+  "expectedUnmetContains": ["status=skipped"]
+}

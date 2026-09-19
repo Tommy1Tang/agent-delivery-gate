@@ -1,0 +1,26 @@
+{
+  "name": "negative: implicit UI trigger must not be bypassed when explicit domain omits ui",
+  "taskSummary": "新增工单详情页面的响应式布局和组件交互，优化界面视觉。",
+  "workflowDomains": [
+    "forward-development"
+  ],
+  "expectedWorkflowDomains": [
+    "forward-development"
+  ],
+  "expectedRouteContains": [
+    "ui-designer",
+    "frontend-engineer",
+    "quality-gate-engineer",
+    "browser-e2e-engineer",
+    "supervisor-auditor"
+  ],
+  "expectedRequiredDocuments": [
+    "docs/01-需求规格书.md",
+    "docs/04-详细设计说明书.md",
+    "docs/14-代码评审.md",
+    "docs/16-E2E测试用例.md",
+    "docs/17-E2E测试报告.md"
+  ],
+  "expectedUiAffected": true,
+  "expectedSecuritySensitive": false
+}

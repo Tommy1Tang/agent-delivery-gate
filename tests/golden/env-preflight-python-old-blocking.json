@@ -1,0 +1,16 @@
+{
+  "name": "ENV: Python 3.10 only, no 3.12 via py launcher -> blocking",
+  "kind": "env-preflight",
+  "simulatedTools": {
+    "java": "openjdk version \"17.0.10\" 2024-01-16",
+    "node": "v22.11.0",
+    "mvn": "Apache Maven 3.9.9",
+    "python": "Python 3.10.11",
+    "py312": false,
+    "git": "git version 2.47.1.windows.2"
+  },
+  "expectedStatus": "not-ready",
+  "expectedBlockingContains": [
+    "Python 3.12 unavailable"
+  ]
+}

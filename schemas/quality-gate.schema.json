@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.qoder/skills/software-development-team/quality-gate.schema.json",
+  "title": "Quality Gate",
+  "type": "object",
+  "required": [
+    "gateName",
+    "status",
+    "checks"
+  ],
+  "properties": {
+    "gateName": {
+      "type": "string"
+    },
+    "gateType": {
+      "type": "string",
+      "enum": [
+        "unit-test",
+        "integration-test",
+        "e2e-test",
+        "security-review",
+        "code-review",
+        "performance-test",
+        "document-check",
+        "audit-check",
+        "prd-sync",
+        "other"
+      ],
+      "default": "other",
+      "description": "Classifies the quality gate for accurate observability reporting"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "fail",
+        "blocked",
+        "not-run",
+        "warn"
+      ]
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "status"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pass",
+              "fail",
+              "blocked",
+              "not-run",
+              "warn"
+            ]
+          },
+          "evidence": {
+            "type": "string"
+          },
+          "ownerRole": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "verdict": {
+      "type": "string",
+      "enum": ["PASS", "BLOCK"],
+      "description": "一等公民字段。quality-gate-engineer.prompt.md 的输出契约与 supervisor-auditor 的判定均以 verdict 为准，因此它必须是可机读的原生字段，不得由 checks[].status 或 status 反推。next_step 的 transition 守卫 verdict==PASS / verdict==BLOCK 直读本字段；缺失时守卫返回 UNKNOWN（不推断）。"
+    },
+    "blockingReasons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "REQUIRED（非空）when verdict='BLOCK'。对应 prompt 中的 block_reasons。"
+    },
+    "riskNotes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "对应 prompt 中的 risk_notes：verdict='PASS' 但存在中低风险时必须记录修复建议。"
+    },
+    "prdSyncStatus": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "fail",
+        "warn",
+        "not-run"
+      ],
+      "description": "Aggregate status of the PRD Sync Gate (contract_drift_check + requirement_drift_check + trace_requirements). 'fail' MUST trigger reverse-sync-workflow.md; release roles MUST NOT proceed until status is 'pass' or 'warn' with explicit waiver."
+    }
+  },
+  "additionalProperties": false
+}

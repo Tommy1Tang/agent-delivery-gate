@@ -1,0 +1,34 @@
+{
+  "name": "PROCESS: transition guards are evaluated (C-SDT-08) and rework re-entry is traced",
+  "kind": "next-step",
+  "ledger": {
+    "taskName": "guard + rework trace regression",
+    "createdAt": "2026-07-29T10:00:00",
+    "deliveryStatus": "in-progress",
+    "roleRuns": [
+      {"roleId": "product-analyst", "status": "completed", "durationMs": 1},
+      {"roleId": "architect", "status": "completed", "durationMs": 1},
+      {"roleId": "architect", "status": "completed", "durationMs": 1, "retryCount": 1}
+    ],
+    "commands": [
+      {"command": "python scripts/preflight_env_check.py --project-root . --json", "status": "pass", "durationMs": 1, "exitCode": 0}
+    ],
+    "artifacts": [],
+    "qualityGates": [],
+    "observability": {}
+  },
+  "projectFixture": {
+    "docs/01-需求规格书.md": "# 需求规格书\n\nFR-001\n",
+    "docs/02-开发计划.md": "# 开发计划\n",
+    "docs/03-任务清单.md": "# 任务清单\n",
+    "docs/04-详细设计说明书.md": "# 详细设计说明书\n"
+  },
+  "expectedState": "actionable",
+  "expectedCurrentNode": "SP-05",
+  "expectedFiredTransitions": {
+    "SP-01": "exit==0 -> SP-02",
+    "SP-03": "status==completed -> SP-04",
+    "SP-04": "status==completed -> SP-05"
+  },
+  "expectedReworkedNodes": ["SP-04"]
+}

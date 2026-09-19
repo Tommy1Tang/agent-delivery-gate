@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.qoder/skills/software-development-team/audit-record.schema.json",
+  "title": "Workflow Audit Record",
+  "type": "object",
+  "required": [
+    "taskName",
+    "workflowDomains",
+    "rolesExpected",
+    "rolesInvoked",
+    "artifactsExpected",
+    "artifactsPresent",
+    "validationEvidence",
+    "decision"
+  ],
+  "properties": {
+    "taskName": {
+      "type": "string"
+    },
+    "workflowDomains": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "rolesExpected": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "rolesInvoked": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "artifactsExpected": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "artifactsPresent": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "validationEvidence": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "decision": {
+      "type": "string",
+      "description": "Audit conclusion. Only binary outcomes are allowed: 'ready' (通过) or 'blocked' (不通过，返工修复). 'conditional' is forbidden by supervisor-auditor contract.",
+      "enum": [
+        "ready",
+        "blocked"
+      ]
+    },
+    "gaps": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    }
+  },
+  "additionalProperties": false
+}

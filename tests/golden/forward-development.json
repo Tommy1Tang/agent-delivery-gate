@@ -1,0 +1,38 @@
+{
+  "name": "forward development task",
+  "taskSummary": "从 0 实现一个工单管理系统，包含需求、设计、前后端实现、测试、评审和部署。",
+  "workflowDomains": [
+    "forward-development"
+  ],
+  "expectedWorkflowDomains": [
+    "forward-development"
+  ],
+  "expectedRouteContains": [
+    "development-orchestrator",
+    "product-analyst",
+    "architect",
+    "data-contract-designer",
+    "quality-gate-engineer",
+    "browser-e2e-engineer",
+    "devops-release-engineer",
+    "supervisor-auditor"
+  ],
+  "expectedRequiredDocuments": [
+    "docs/01-需求规格书.md",
+    "docs/04-详细设计说明书.md",
+    "docs/07-接口数据契约.md",
+    "docs/16-E2E测试用例.md",
+    "docs/17-E2E测试报告.md",
+    "docs/19-监督审计.md"
+  ],
+  "expectedUiAffected": true,
+  "expectedSecuritySensitive": false,
+  "expectedConditionalRoleFlags": {
+    "ui-designer": true
+  },
+  "expectedPlanSnapshot": {
+    "stackDetection": {
+      "deterministic": true
+    }
+  }
+}

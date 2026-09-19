@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "1.0.0",
+  "enabled": true,
+  "provider": {
+    "name": "code-graph-rag",
+    "executable": "cgr",
+    "distributionName": "code-graph-rag",
+    "entryPoint": "codebase_rag.cli:app",
+    "providerVersion": "0.0.779",
+    "versionOutput": "code-graph-rag version 0.0.779",
+    "manifestVersion": 1,
+    "codecSchemaSha256": "09e1c5e0b1b58c5e02c3e55e99e438625dfeed0caf3839a5b782d9196b348e84",
+    "requiredCaptures": ["structure", "calls", "types", "imports"]
+  },
+  "sourceExtensions": [".py", ".md"],
+  "excludeDirectories": [
+    ".git",
+    ".venv",
+    "venv",
+    "node_modules",
+    "dist",
+    "build",
+    "target",
+    "__pycache__",
+    "_test_output",
+    ".tmp"
+  ],
+  "excludePaths": [
+    "docs/10-单元测试用例.md",
+    "docs/11-单元测试报告.md",
+    "docs/12-集成测试用例.md",
+    "docs/13-集成测试报告.md",
+    "docs/14-代码评审.md",
+    "docs/15-安全评审.md",
+    "docs/16-E2E测试用例.md",
+    "docs/17-E2E测试报告.md",
+    "docs/18-部署说明.md",
+    "docs/16-端到端测试用例.md",
+    "docs/17-端到端测试报告.md",
+    "docs/18-发布说明.md",
+    "docs/19-监督审计.md",
+    "docs/可观测性报告.md",
+    "docs/执行日志.md",
+    "docs/README.md",
+    "docs/agent-timing.md"
+  ],
+  "symbolKinds": ["MODULE", "CLASS", "FUNCTION", "METHOD", "INTERFACE", "ENUM", "TYPE", "UNION", "SECTION"],
+  "relationshipTypes": [
+    "CALLS",
+    "REFERENCES",
+    "INSTANTIATES",
+    "INHERITS",
+    "IMPLEMENTS",
+    "OVERRIDES",
+    "IMPORTS",
+    "EXPORTS",
+    "EXPORTS_MODULE",
+    "IMPLEMENTS_MODULE",
+    "EXPOSES",
+    "RESOLVES_TO",
+    "LINKS_TO",
+    "CONTAINS",
+    "DEFINES"
+  ],
+  "limits": {
+    "maxDepth": 8,
+    "maxNodes": 10000,
+    "timeoutSeconds": 10,
+    "maxCandidates": 20
+  },
+  "outputRoot": "_test_output/code-intelligence"
+}

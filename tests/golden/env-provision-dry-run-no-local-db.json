@@ -1,0 +1,31 @@
+{
+  "name": "ENV: provision dry-run plans nvm route for Node + winget Maven 3; no postgresql/redis command ever",
+  "kind": "env-provision-dry-run",
+  "simulatedTools": {
+    "java": "openjdk version \"17.0.10\" 2024-01-16",
+    "node": "v24.14.0",
+    "python": "Python 3.12.9",
+    "py312": true,
+    "git": "git version 2.47.1.windows.2",
+    "winget": true
+  },
+  "expectedToolStatus": {
+    "java": "ready",
+    "node": "would-install",
+    "maven": "would-install",
+    "python": "ready",
+    "git": "ready"
+  },
+  "expectedPlannedCommandsContain": {
+    "node": [
+      "CoreyButler.NVMforWindows",
+      "nvm install 22",
+      "nvm use 22"
+    ],
+    "maven": [
+      "winget install Apache.Maven",
+      "--silent"
+    ]
+  },
+  "assertNoLocalDbCommands": true
+}

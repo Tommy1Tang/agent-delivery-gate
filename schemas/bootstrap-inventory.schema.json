@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.qoder/skills/software-development-team/bootstrap-inventory.schema.json",
+  "title": "BootstrapInventory",
+  "type": "object",
+  "required": ["schemaVersion", "inventoryId", "repositoryId", "deliveryId", "startingProcessVersion", "activatedVersion", "allowedChangeSet", "actualChangeSet", "activationToken", "afterManifest", "afterTraceBridge", "baselineStatement", "postGateEvidence", "createdAt", "hashExcludedFields", "inventoryHash"],
+  "properties": {
+    "schemaVersion": {"const": "1.0.0"},
+    "inventoryId": {"pattern": "^CBI-[0-9a-f]{24}$"},
+    "repositoryId": {"type": "string", "minLength": 1, "maxLength": 128},
+    "deliveryId": {"type": "string", "minLength": 1, "maxLength": 128},
+    "startingProcessVersion": {"const": "1.0.0"},
+    "activatedVersion": {"const": "1.1.0"},
+    "allowedChangeSet": {
+      "type": "object",
+      "required": ["files", "allowedHash", "frozenAt", "freezeEvidenceHash"],
+      "properties": {
+        "files": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/changeItem"}},
+        "allowedHash": {"$ref": "#/$defs/hash"},
+        "frozenAt": {"$ref": "#/$defs/timestamp"},
+        "freezeEvidenceHash": {"$ref": "#/$defs/hash"}
+      },
+      "additionalProperties": false
+    },
+    "actualChangeSet": {
+      "type": "object",
+      "required": ["files", "actualHash", "capturedAt"],
+      "properties": {
+        "files": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/changeItem"}},
+        "actualHash": {"$ref": "#/$defs/hash"},
+        "capturedAt": {"$ref": "#/$defs/timestamp"}
+      },
+      "additionalProperties": false
+    },
+    "activationToken": {
+      "type": "object",
+      "required": ["tokenId", "state"],
+      "properties": {"tokenId": {"$ref": "#/$defs/hash"}, "state": {"const": "unconsumed"}},
+      "additionalProperties": false
+    },
+    "afterManifest": {"$ref": "#/$defs/artifactRef"},
+    "afterTraceBridge": {"$ref": "#/$defs/artifactRef"},
+    "baselineStatement": {"$ref": "#/$defs/artifactRef"},
+    "postGateEvidence": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "required": ["gateId", "verdict", "code", "artifactHashes"],
+        "properties": {
+          "gateId": {"enum": ["C-CODE-01", "C-CODE-02", "C-CODE-03", "C-CODE-04"]},
+          "verdict": {"const": "PASS"},
+          "code": {"type": "string", "minLength": 1},
+          "artifactHashes": {"type": "array", "items": {"$ref": "#/$defs/hash"}}
+        },
+        "additionalProperties": false
+      }
+    },
+    "createdAt": {"$ref": "#/$defs/timestamp"},
+    "hashExcludedFields": {"const": ["createdAt", "inventoryHash", "inventoryId", "baselineStatement.sha256"]},
+    "inventoryHash": {"$ref": "#/$defs/hash"}
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "timestamp": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]+)?Z$"},
+    "relativePath": {"type": "string", "minLength": 1, "pattern": "^(?!/)(?![A-Za-z]:)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*[*?\\[\\]{}]).+$"},
+    "changeItem": {
+      "type": "object",
+      "required": ["path", "operation", "category"],
+      "properties": {
+        "path": {"$ref": "#/$defs/relativePath"},
+        "operation": {"enum": ["created", "modified"]},
+        "category": {"enum": ["implementation", "schema", "governance", "test", "delivery-document", "generated-evidence"]}
+      },
+      "additionalProperties": false
+    },
+    "artifactRef": {
+      "type": "object",
+      "required": ["path", "sha256", "contentHash"],
+      "properties": {"path": {"$ref": "#/$defs/relativePath"}, "sha256": {"$ref": "#/$defs/hash"}, "contentHash": {"$ref": "#/$defs/hash"}},
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,22 @@
+{
+  "name": "BASELINE: tampering a file without updating manifest fires C-INPUT-01 (hash mismatch)",
+  "kind": "input-contract",
+  "baselineAutoManifest": true,
+  "baselineId": "BL-GOLDEN-TAMPER",
+  "inputFixture": {
+    "00-项目概述.md": "# 项目概述\n\n## 业务场景清单\n\n| scenario_id | 名称 | 触发角色 |\n|---|---|---|\n| SC-01 | 建任务 | ROLE-01 |\n\n## 角色清单\n\n| role_id | 名称 |\n|---|---|\n| ROLE-01 | 操作员 |\n\n## 范围\n\nIn: 任务管理。Out: 报表。\n",
+    "01-能力目录.md": "# 能力目录\n\n| capability_id | 名称 | 优先级 | 关联 scenario_id | 关联 process_id | 关联 entity_id | 验收要点 |\n|---|---|---|---|---|---|---|\n| CAP-01 | 创建任务 | Must | SC-01 | PROC-01 | ENT-Task | 可创建任务 |\n",
+    "02-领域模型.md": "# 领域模型\n\n| entity_id | 名称 |\n|---|---|\n| ENT-Task | 任务 |\n",
+    "05-流程模型.md": "# 流程模型\n\n| process_id | node_id | 名称 |\n|---|---|---|\n| PROC-01 | ND-01 | 提交 |\n| PROC-01 | ND-02 | 审批 |\n"
+  },
+  "baselineFixture": {
+    "models/spec/model-spec.json": "{\"capabilities\":[{\"id\":\"CAP-01\"}],\"processes\":[{\"id\":\"PROC-01\"}],\"entities\":[{\"id\":\"ENT-Task\"}]}",
+    "models/bpmn/p.bpmn": "<?xml version=\"1.0\"?><definitions xmlns=\"http://www.omg.org/spec/BPMN/20100524/MODEL\"><process id=\"PROC-01\"><userTask id=\"ND-01\"/><exclusiveGateway id=\"ND-02\"/></process></definitions>",
+    "models/ontology/d.owl": "<?xml version=\"1.0\"?><rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:owl=\"http://www.w3.org/2002/07/owl#\"><owl:Class rdf:about=\"http://x#ENT-Task\"/></rdf:RDF>"
+  },
+  "baselineTamper": {
+    "models/spec/model-spec.json": "{\"capabilities\":[{\"id\":\"CAP-01\"}],\"processes\":[{\"id\":\"PROC-01\"}],\"entities\":[{\"id\":\"ENT-Task\"}],\"tampered\":true}"
+  },
+  "expectedVerdict": "fail",
+  "expectedBlockingContains": ["C-INPUT-01", "内容哈希不匹配"]
+}

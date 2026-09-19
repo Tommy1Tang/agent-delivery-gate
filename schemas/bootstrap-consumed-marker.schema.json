@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.qoder/skills/software-development-team/bootstrap-consumed-marker.schema.json",
+  "title": "ConsumedMarker",
+  "type": "object",
+  "required": ["schemaVersion", "tokenId", "repositoryId", "deliveryId", "activationRecordHash", "consumed", "consumedAt", "hashExcludedFields", "markerHash"],
+  "properties": {
+    "schemaVersion": {"const": "1.0.0"},
+    "tokenId": {"$ref": "#/$defs/hash"},
+    "repositoryId": {"type": "string", "minLength": 1, "maxLength": 128},
+    "deliveryId": {"type": "string", "minLength": 1, "maxLength": 128},
+    "activationRecordHash": {"$ref": "#/$defs/hash"},
+    "consumed": {"const": true},
+    "consumedAt": {"$ref": "#/$defs/timestamp"},
+    "hashExcludedFields": {"const": ["markerHash"]},
+    "markerHash": {"$ref": "#/$defs/hash"}
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "timestamp": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]+)?Z$"}
+  },
+  "additionalProperties": false
+}

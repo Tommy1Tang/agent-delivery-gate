@@ -1,0 +1,27 @@
+{
+  "name": "incident handling task",
+  "taskSummary": "线上接口故障需要紧急修复、保留证据、根因分析、回归测试并补齐发布说明。",
+  "workflowDomains": [
+    "incident-management"
+  ],
+  "expectedWorkflowDomains": [
+    "incident-management"
+  ],
+  "expectedRouteContains": [
+    "backend-engineer",
+    "quality-gate-engineer",
+    "browser-e2e-engineer",
+    "devops-release-engineer",
+    "supervisor-auditor"
+  ],
+  "expectedRequiredDocuments": [
+    "docs/11-单元测试报告.md",
+    "docs/13-集成测试报告.md",
+    "docs/16-E2E测试用例.md",
+    "docs/17-E2E测试报告.md",
+    "docs/18-部署说明.md",
+    "docs/19-监督审计.md"
+  ],
+  "expectedUiAffected": false,
+  "expectedSecuritySensitive": false
+}

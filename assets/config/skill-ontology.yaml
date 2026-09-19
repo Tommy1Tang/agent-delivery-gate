@@ -1,0 +1,249 @@
+# software-development-team 自身的受控本体 —— 人类编辑孪生
+#
+# 真理源是 assets/config/skill-ontology.json（脚本只读 JSON）。
+# 一致性校验：python scripts/next_step.py --skill-root . --check
+#
+# 这是 controlled vocabulary（受控词表），不是 OWL 本体。刻意采用封闭世界假设。
+
+ontologyId: ONT-SDT-SKILL
+version: 1.1.0
+authoritySource: false
+machineTruthSource: assets/config/skill-ontology.json
+
+worldAssumption: closed
+worldAssumptionRationale: >
+  门禁需要「未记录 => 未完成」的判定。开放世界假设（OWL）会拒绝下这个结论，
+  因此不采用 OWL/DL 推理，改用封闭世界的脚本校验。
+
+# ---------------------------------------------------------------------------
+# 定律（不可协商；每条绑定机械门禁）
+# ---------------------------------------------------------------------------
+laws:
+  document: references/graph-engineering-laws.md
+  note: >
+    定律是不可协商的建模约束，每条绑定机械门禁；无门禁的定律不得写入。
+    修改流程/本体前必须先读。
+  items:
+    - {lawId: LAW-1, name: 单一真理源,           enforcedBy: [check_skill_integrity.EXPECTED_PROCESS_MODELS]}
+    - {lawId: LAW-2, name: 封闭世界,             enforcedBy: [next_step._node_satisfied, validate_delivery._check_process_node_coverage]}
+    - {lawId: LAW-3, name: 声明优先于推断,       enforcedBy: [C-SDT-10]}
+    - {lawId: LAW-4, name: 不推断裁决,           enforcedBy: [C-SDT-11, next_step._guard_context]}
+    - {lawId: LAW-5, name: 守卫可执行,           enforcedBy: [C-SDT-08]}
+    - {lawId: LAW-6, name: 图不变量可机械校验,   enforcedBy: ["C-SDT-01..11"]}
+    - {lawId: LAW-7, name: 状态外置且双向,       enforcedBy: ["evidence-ledger.schema.json#/processPointer", "next_step --record-pointer"]}
+    - {lawId: LAW-8, name: 拒绝过度工程,         enforcedBy: ["skill-ontology.json#/formatDecision"]}
+
+# ---------------------------------------------------------------------------
+# 类
+# ---------------------------------------------------------------------------
+classes:
+
+  - classId: Role
+    name: 角色
+    idPrefix: role
+    instancesFrom: assets/config/agent-team-config.json#/roles
+    keyAttributes: [id, promptFile, expectedOutputs, tokenBudget, timeout]
+    nonSkippable:
+      - architect
+      - quality-gate-engineer
+      - browser-e2e-engineer
+      - supervisor-auditor
+
+  - classId: Node
+    name: 流程节点
+    idPrefix: SP
+    instancesFrom: assets/config/skill-process.json#/nodes
+    keyAttributes: [nodeId, type, phase, when, transitions]
+    subClasses: [GateNode, RoleDispatchNode, TerminalNode]
+
+  - classId: Artifact
+    name: 交付物
+    idPrefix: doc
+    instancesFrom: assets/config/skill-process.json#/nodes[*]/outputs
+    keyAttributes: [artifact, paths, ownerRole]
+    note: >
+      paths 为多路径别名，兼容 docs/需求规格书.md 与 docs/01-需求规格书.md
+      两种历史命名。
+
+  - classId: Gate
+    name: 门禁
+    idPrefix: gate
+    keyAttributes: [gateId, script, node, exitCodeSemantics]
+    instances:
+      - {gateId: gate-env-preflight,     script: scripts/preflight_env_check.py,     node: SP-01}
+      - {gateId: gate-input-contract,    script: scripts/validate_input_contract.py, node: SP-02}
+      - {gateId: gate-smoke-test,        script: scripts/smoke_test.py,              node: SP-12}
+      - {gateId: gate-delivery-validate, script: scripts/validate_delivery.py,       node: SP-18}
+
+  - classId: Handoff
+    name: 任务交接
+    schema: schemas/handoff.schema.json
+    producedBy: development-orchestrator
+    consumedBy: 任一下游角色
+
+  - classId: RoleResult
+    name: 角色结果
+    schema: schemas/role-result.schema.json
+    producedBy: 任一下游角色
+    consumedBy: development-orchestrator
+    note: status 与 outputs 共同决定流程指针是否推进。
+
+  - classId: EvidenceLedger
+    name: 证据账本
+    schema: schemas/evidence-ledger.schema.json
+    keyAttributes: [roleRuns, commands, artifacts, qualityGates, observability, deliveryStatus]
+    note: >
+      流程状态的持久化载体。next_step.py 读它推导当前节点，AI 不需要自己记状态。
+
+  - classId: CodeIntelligenceEvidence
+    name: 代码智能派生证据
+    schema: schemas/evidence-ledger.schema.json#/properties/codeIntelligence
+    keyAttributes: [applicability, provider, beforeManifest, preChangeImpactReports, afterManifest, indexDiff, gateResults]
+    note: >
+      只登记代码图派生物及 C-CODE 裁决，不复制 Project/Module/Symbol/Relationship
+      等代码图节点，不取得交付控制权。
+
+  - classId: BootstrapInventory
+    name: 一次性激活精确清单
+    schema: schemas/bootstrap-inventory.schema.json
+    keyAttributes: [repositoryId, deliveryId, startingProcessVersion, activatedVersion, allowedChangeSet, actualChangeSet, inventoryHash]
+
+  - classId: BaselineStatement
+    name: 首份 after 基线声明
+    schema: schemas/bootstrap-baseline-statement.schema.json
+    keyAttributes: [repositoryId, deliveryId, inventoryHash, comparisonMode, diffClaimed, contentHash]
+
+  - classId: ActivationRecord
+    name: 不可变激活记录
+    schema: schemas/bootstrap-activation.schema.json
+    keyAttributes: [tokenId, repositoryId, deliveryId, inventoryHash, consumed, recordHash]
+
+  - classId: ConsumedMarker
+    name: 不可重复消费标记
+    schema: schemas/bootstrap-consumed-marker.schema.json
+    keyAttributes: [tokenId, repositoryId, deliveryId, activationRecordHash, consumed, markerHash]
+
+  - classId: Phase
+    name: 阶段
+    instancesFrom: assets/config/skill-process.json#/phases
+    instances:
+      - preflight
+      - requirements
+      - design
+      - implementation
+      - validation-and-review
+      - release
+      - closure
+
+# ---------------------------------------------------------------------------
+# 关系（三元组：subject - predicate - object）
+# ---------------------------------------------------------------------------
+relations:
+  - {relationId: REL-SDT-01, subject: Node,          predicate: dispatches,     object: Role,     cardinality: "1:0..1", note: gate 与 terminal 节点不派角色}
+  - {relationId: REL-SDT-02, subject: Role,          predicate: produces,       object: Artifact, cardinality: "1:N"}
+  - {relationId: REL-SDT-03, subject: Artifact,      predicate: requiredBy,     object: Role,     cardinality: "N:M", note: 下游角色的必读输入}
+  - {relationId: REL-SDT-04, subject: Gate,          predicate: validates,      object: Artifact, cardinality: "1:N"}
+  - {relationId: REL-SDT-05, subject: Node,          predicate: precededBy,     object: Node,     cardinality: "N:M", note: 由 transitions 反向导出，构成 DAG + 返工回边}
+  - {relationId: REL-SDT-06, subject: Node,          predicate: belongsToPhase, object: Phase,    cardinality: "N:1"}
+  - {relationId: REL-SDT-07, subject: RoleResult,    predicate: advances,       object: Node,     cardinality: "1:1", note: status + outputs 落盘共同满足才推进}
+  - {relationId: REL-SDT-08, subject: Handoff,       predicate: targets,        object: Role,     cardinality: "1:1"}
+  - {relationId: REL-SDT-09, subject: EvidenceLedger, predicate: records,       object: RoleResult, cardinality: "1:N"}
+  - {relationId: REL-SDT-10, subject: Gate,          predicate: blocks,         object: Node,     cardinality: "1:N", note: 门禁未通过时阻止后继节点}
+  - {relationId: REL-SDT-11, subject: EvidenceLedger, predicate: records,       object: CodeIntelligenceEvidence, cardinality: "1:0..1"}
+  - {relationId: REL-SDT-12, subject: CodeIntelligenceEvidence, predicate: guards, object: Node, cardinality: "1:N", note: 仅由 requiredCodeGates 显式声明 SP-10/11/12/13/18 的准入与复验}
+  - {relationId: REL-SDT-13, subject: CodeIntelligenceEvidence, predicate: references, object: BootstrapInventory, cardinality: "1:0..1"}
+  - {relationId: REL-SDT-14, subject: BootstrapInventory, predicate: binds, object: BaselineStatement, cardinality: "1:1"}
+  - {relationId: REL-SDT-15, subject: ActivationRecord, predicate: activates, object: BootstrapInventory, cardinality: "1:1"}
+  - {relationId: REL-SDT-16, subject: ConsumedMarker, predicate: consumes, object: ActivationRecord, cardinality: "1:1"}
+
+# ---------------------------------------------------------------------------
+# 约束（封闭世界校验，由 next_step.py --check 机械执行）
+# ---------------------------------------------------------------------------
+constraints:
+  - {constraintId: C-SDT-01, rule: 每个 role-dispatch 节点的 role 必须存在于 agent-team-config.json#/roles, checkedBy: scripts/next_step.py --check}
+  - {constraintId: C-SDT-02, rule: 每个 role-dispatch 节点的 promptFile 必须实际存在,                      checkedBy: scripts/next_step.py --check}
+  - {constraintId: C-SDT-03, rule: 每条 transition 的 to 必须是已定义的 nodeId 或保留字（REWORK / SP-HALT / SP-DONE）, checkedBy: scripts/next_step.py --check}
+  - {constraintId: C-SDT-04, rule: nonSkippable 角色对应的节点必须 skippable=false,                        checkedBy: scripts/next_step.py --check}
+  - {constraintId: C-SDT-05, rule: phases 中列举的节点集合必须与 nodes 中的 phase 字段一致（不含 terminal）, checkedBy: scripts/next_step.py --check}
+  - {constraintId: C-SDT-06, rule: 每个 gate 节点必须有 command 与 satisfiedBy.commandContains,            checkedBy: scripts/next_step.py --check}
+  - {constraintId: C-SDT-07, rule: 从 entry 出发必须能到达 SP-DONE（可达性），且不存在无法到达的孤立节点,   checkedBy: scripts/next_step.py --check}
+
+  # C-SDT-08/09 是“从图建模走向图工程”的两条关键约束
+  - constraintId: C-SDT-08
+    rule: >
+      每条 transition 的 on 守卫必须符合可求值语法 <var> <op> <value>，且 var 属于
+      该节点类型允许的变量集（gate: exit/retries；role-dispatch:
+      status/verdict/passRate/retries）。守卫是可执行谓词，不是图示文案。
+    checkedBy: scripts/next_step.py --check
+    evaluator: next_step._eval_guard（三态 True/False/None；None = 台账信息不足以判定，禁止猜）
+  - constraintId: C-SDT-09
+    rule: >
+      本体关系必须能物化为可遍历的属性图：每个交付物有唯一生产节点
+      （所有权唯一），且非终端产物应有下游消费边。
+    checkedBy: scripts/next_step.py --check
+    materialisedBy: next_step.build_graph（--graph 导出，--impact 查询）
+    law: LAW-6
+  - constraintId: C-SDT-10
+    rule: >
+      禁止 glob 隐式依赖：节点若消费全部交付物，必须显式声明
+      consumesAllArtifacts: true，不得仅靠 inputs 中的 docs/** 让脚本自行领悟；
+      非 role-dispatch 节点不得声明该字段。
+    checkedBy: scripts/next_step.py --check
+    law: LAW-3
+  - constraintId: C-SDT-11
+    rule: >
+      每个被使用的守卫变量必须有原生字段可读
+      （verdict → quality-gate.schema.json#/verdict；
+      exit → evidence-ledger.schema.json#/exitCode），禁止由其他字段反推。
+    checkedBy: scripts/next_step.py --check
+    law: LAW-4
+  - constraintId: C-CODE-01..07
+    rule: >
+      normal 执行真实 pre-change/diff；唯一 1.0.0→1.1.0 bootstrap 由 exact inventory、
+      token/history、ActivationRecord/ConsumedMarker 与 hash DAG 约束，只允许冻结的
+      C05/C06 特例；失败一律 BLOCK。
+    checkedBy: scripts/validate_code_intelligence.py + scripts/next_step.py + scripts/validate_delivery.py
+    law: LAW-8
+
+# ---------------------------------------------------------------------------
+# 派生视图（禁止手工维护）
+# ---------------------------------------------------------------------------
+derivedViews:
+  - view: mermaid-flowchart
+    generatedBy: python scripts/next_step.py --mermaid
+    handEdited: false
+    note: 禁止手工维护，改流程只改 JSON/YAML 真理源后重新生成。
+  - view: materialised-graph
+    generatedBy: python scripts/next_step.py --graph
+    handEdited: false
+    note: >
+      将 classes/relations 展开为 nodes/edges（role:/artifact:/node: 三类节点，
+      dispatches/produces/requires/precedes 四类边），供影响面查询遍历。
+
+# ---------------------------------------------------------------------------
+# 图查询（本体不只是文档，可被提问）
+# ---------------------------------------------------------------------------
+queries:
+  - queryId: Q-IMPACT
+    question: 某交付物/角色/节点缺失或出错，会阻塞哪些下游？
+    command: python scripts/next_step.py --impact <交付物名|角色id|节点id>
+    algorithm: 按 requires/dispatches 定位直接消费节点，再沿 precedes 求下游闭包
+
+# ---------------------------------------------------------------------------
+# 格式选型决策（为什么不用 BPMN / OWL）
+# ---------------------------------------------------------------------------
+formatDecision:
+  chosen: JSON（机器消费）+ YAML（人类编辑孪生）+ mermaid（派生视图）
+  rejected:
+    - format: BPMN XML
+      reason: >
+        无流程引擎执行；LLM 读 XML 的 token 量约 3-5 倍且识别更差；
+        所需语义（网关/边界错误事件/泳道）已用 bpmnType 与 transitions 表达。
+    - format: OWL/RDF
+      reason: >
+        开放世界假设与门禁所需的封闭世界判定冲突；规模仅 8 类 10 关系，
+        属受控词表而非需 DL 推理的本体；无 SPARQL/语义网消费方。
+  dependencyConstraint: >
+    本 skill 全部脚本零第三方依赖（仅 json/re/pathlib）。PyYAML 非标准库，
+    故脚本只消费 JSON，YAML 仅作人类编辑层 —— 与 agent-team-config.yaml/json
+    既有双格式惯例一致。

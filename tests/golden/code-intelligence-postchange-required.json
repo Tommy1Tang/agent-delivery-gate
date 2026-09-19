@@ -1,0 +1,37 @@
+{
+  "name": "CODE: smoke entry requires explicit C-CODE-06 PASS",
+  "kind": "next-step",
+  "ledger": {
+    "taskName": "code postchange gate",
+    "createdAt": "2026-08-27T00:00:00Z",
+    "deliveryStatus": "in-progress",
+    "roleRuns": [
+      {"roleId": "product-analyst", "status": "completed", "durationMs": 1},
+      {"roleId": "architect", "status": "completed", "durationMs": 1},
+      {"roleId": "data-engineer", "status": "skipped", "reasonForSkip": "objective-conditions-met", "objectiveConditionsRef": ["no database"], "durationMs": 1},
+      {"roleId": "data-contract-designer", "status": "completed", "durationMs": 1},
+      {"roleId": "performance-engineer", "status": "skipped", "reasonForSkip": "objective-conditions-met", "objectiveConditionsRef": ["performance deferred"], "durationMs": 1},
+      {"roleId": "ui-designer", "status": "skipped", "reasonForSkip": "objective-conditions-met", "objectiveConditionsRef": ["no UI"], "durationMs": 1},
+      {"roleId": "execution-engineer", "status": "completed", "durationMs": 1},
+      {"roleId": "backend-engineer", "status": "completed", "durationMs": 1},
+      {"roleId": "frontend-engineer", "status": "skipped", "reasonForSkip": "objective-conditions-met", "objectiveConditionsRef": ["no frontend"], "durationMs": 1}
+    ],
+    "commands": [{"command": "python scripts/preflight_env_check.py --project-root . --json", "status": "pass", "exitCode": 0, "durationMs": 1}],
+    "artifacts": [], "qualityGates": [], "observability": {},
+    "codeIntelligence": {
+      "schemaVersion": "1.0.0", "applicability": "applicable", "startingProcessVersion": "1.1.0", "activatedVersion": "1.1.0", "repositoryId": "golden-repo", "deliveryId": "code postchange gate",
+      "gateResults": [{"gateId": "C-CODE-05", "verdict": "PASS", "code": "OK", "artifactHashes": [], "commandRef": "impact", "exitCode": 0, "timestamp": "2026-08-27T00:00:00Z"}]
+    }
+  },
+  "projectFixture": {
+    "docs/01-需求规格书.md": "# PRD\nFR-001\n",
+    "docs/02-开发计划.md": "# Plan\n",
+    "docs/03-任务清单.md": "# Tasks\n",
+    "docs/04-详细设计说明书.md": "# Design\n",
+    "docs/07-接口数据契约.md": "# Contract\n"
+  },
+  "expectedState": "actionable",
+  "expectedCurrentNode": "SP-12",
+  "expectedNodeType": "gate",
+  "expectedUnmetContains": ["C-CODE-06"]
+}

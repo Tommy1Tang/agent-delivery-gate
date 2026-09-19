@@ -1,0 +1,9 @@
+{
+  "name": "OWL-TRACE: no OWL baseline => gate 23 not applicable, passes",
+  "kind": "owl-traceability",
+  "projectFixture": {
+    "docs/input/02-领域模型.md": "# 领域模型\n\n| entity_id | 名称 |\n|---|---|\n| ENT-Task | 检验任务 |\n",
+    "docs/05-数据设计说明书.md": "# 数据设计说明书\n\n## 表结构\n\n| 表名 | 字段 |\n|---|---|\n| t_task | id, name |\n"
+  },
+  "expectBlocking": false
+}

@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.qoder/skills/software-development-team/baseline-snapshot.schema.json",
+  "title": "Baseline Snapshot",
+  "description": "Captures PRD / contract / schema state at delivery time. Drift checks read the latest snapshot and only flag deltas, avoiding re-reporting historical issues.",
+  "type": "object",
+  "required": ["version", "createdAt", "prd", "contract", "schema"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Snapshot version, typically a release tag or ISO timestamp"
+    },
+    "createdAt": {
+      "type": "string",
+      "description": "ISO 8601 timestamp when the snapshot was written"
+    },
+    "prd": {
+      "type": "object",
+      "description": "FR/NFR fingerprint extracted from docs/01-需求规格书.md",
+      "required": ["present", "frs"],
+      "properties": {
+        "present": {"type": "boolean"},
+        "frCount": {"type": "integer", "minimum": 0},
+        "frs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "criteriaHash"],
+            "properties": {
+              "id": {"type": "string", "pattern": "^(FR|NFR|REQ|UC|US)-\\d{1,4}$"},
+              "criteriaHash": {"type": "string", "minLength": 8, "maxLength": 64}
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "contract": {
+      "type": "object",
+      "description": "Contract endpoint list extracted from docs/07-接口数据契约.md",
+      "required": ["present", "endpoints"],
+      "properties": {
+        "present": {"type": "boolean"},
+        "endpointCount": {"type": "integer", "minimum": 0},
+        "endpoints": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^(GET|POST|PUT|DELETE|PATCH)\\s+/.+$"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "schema": {
+      "type": "object",
+      "description": "Database schema fingerprint extracted from migration scripts",
+      "required": ["present", "tables"],
+      "properties": {
+        "present": {"type": "boolean"},
+        "tableCount": {"type": "integer", "minimum": 0},
+        "tables": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "bodyHash"],
+            "properties": {
+              "name": {"type": "string", "minLength": 1},
+              "bodyHash": {"type": "string", "minLength": 8, "maxLength": 64}
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

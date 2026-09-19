@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.qoder/skills/software-development-team/index-diff.schema.json",
+  "title": "Canonical Code Index Diff and ChangeSet Reconciliation",
+  "type": "object",
+  "required": ["schemaVersion", "diffId", "repositoryId", "beforeManifest", "afterManifest", "impactReport", "changeSetHash", "fileChanges", "symbolChanges", "relationshipChanges", "traceChanges", "reconciliation", "gateVerdict", "unknownReasons", "generatedAt", "contentHash"],
+  "properties": {
+    "schemaVersion": {"const": "1.0.0"},
+    "diffId": {"type": "string", "pattern": "^CDI-[0-9a-f]{24}$"},
+    "repositoryId": {"type": "string", "minLength": 1},
+    "beforeManifest": {"$ref": "#/$defs/artifact"},
+    "afterManifest": {"$ref": "#/$defs/artifact"},
+    "impactReport": {"$ref": "#/$defs/artifact"},
+    "changeSetHash": {"$ref": "#/$defs/hash"},
+    "fileChanges": {"type": "array", "items": {"$ref": "#/$defs/change"}},
+    "symbolChanges": {"type": "array", "items": {"$ref": "#/$defs/change"}},
+    "relationshipChanges": {"type": "array", "items": {"$ref": "#/$defs/change"}},
+    "traceChanges": {"type": "array", "items": {"$ref": "#/$defs/change"}},
+    "reconciliation": {"$ref": "#/$defs/reconciliation"},
+    "gateVerdict": {"enum": ["PASS", "BLOCK", "UNKNOWN"]},
+    "unknownReasons": {"type": "array", "items": {"type": "string"}},
+    "generatedAt": {"type": "string"},
+    "contentHash": {"$ref": "#/$defs/hash"}
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "artifact": {
+      "type": "object",
+      "required": ["contentHash"],
+      "properties": {"contentHash": {"$ref": "#/$defs/hash"}, "manifestHash": {"$ref": "#/$defs/hash"}, "path": {"type": "string"}},
+      "additionalProperties": false
+    },
+    "change": {
+      "type": "object",
+      "required": ["changeType", "stableId"],
+      "properties": {
+        "changeType": {"enum": ["ADDED", "MODIFIED", "REMOVED"]},
+        "stableId": {"type": "string", "minLength": 1},
+        "beforeHash": {"$ref": "#/$defs/hash"},
+        "afterHash": {"$ref": "#/$defs/hash"},
+        "relativePath": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "finding": {
+      "type": "object",
+      "required": ["code", "severity", "subject", "evidence", "remediation"],
+      "properties": {
+        "code": {"type": "string"}, "severity": {"enum": ["BLOCK", "UNKNOWN"]}, "subject": {"type": "string"},
+        "evidence": {"type": "array", "items": {"type": "string"}}, "remediation": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "reconciliation": {
+      "type": "object",
+      "required": ["declaredCodeFiles", "actualCodeFiles", "undeclaredFileChanges", "declaredFilesNotChanged", "allowedSymbolIds", "undeclaredSymbolChanges", "relationEndpointViolations", "traceRegressions", "coverageRegressions", "findings", "verdict"],
+      "properties": {
+        "declaredCodeFiles": {"type": "array", "items": {"type": "string"}},
+        "actualCodeFiles": {"type": "array", "items": {"type": "string"}},
+        "undeclaredFileChanges": {"type": "array", "items": {"type": "string"}},
+        "declaredFilesNotChanged": {"type": "array", "items": {"type": "string"}},
+        "allowedSymbolIds": {"type": "array", "items": {"$ref": "#/$defs/hash"}},
+        "undeclaredSymbolChanges": {"type": "array", "items": {"type": "string"}},
+        "relationEndpointViolations": {"type": "array", "items": {"type": "string"}},
+        "traceRegressions": {"type": "array", "items": {"type": "string"}},
+        "coverageRegressions": {"type": "array", "items": {"type": "string"}},
+        "findings": {"type": "array", "items": {"$ref": "#/$defs/finding"}},
+        "verdict": {"enum": ["PASS", "BLOCK", "UNKNOWN"]}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

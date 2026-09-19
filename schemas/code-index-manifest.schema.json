@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.qoder/skills/software-development-team/code-index-manifest.schema.json",
+  "title": "Canonical Code Index Manifest",
+  "type": "object",
+  "required": ["schemaVersion", "repositoryId", "source", "sourceDigest", "configHash", "provider", "manifestHash", "files", "symbols", "relationships", "coverage", "snapshotHash", "generatedAt", "contentHash"],
+  "properties": {
+    "schemaVersion": {"enum": ["1.0.0", "1.1.0"]},
+    "repositoryId": {"type": "string", "minLength": 1},
+    "source": {
+      "type": "object",
+      "required": ["commit", "dirty"],
+      "properties": {"commit": {"type": ["string", "null"]}, "dirty": {"type": ["boolean", "null"]}},
+      "additionalProperties": false
+    },
+    "sourceDigest": {"$ref": "#/$defs/hash"},
+    "configHash": {"$ref": "#/$defs/hash"},
+    "provider": {
+      "type": "object",
+      "required": ["name", "version", "manifestVersion", "codecSchemaSha256", "identity"],
+      "properties": {
+        "name": {"const": "code-graph-rag"},
+        "version": {"const": "0.0.779"},
+        "manifestVersion": {"const": 1},
+        "codecSchemaSha256": {"const": "09e1c5e0b1b58c5e02c3e55e99e438625dfeed0caf3839a5b782d9196b348e84"},
+        "identity": {"$ref": "#/$defs/providerIdentity"}
+      },
+      "additionalProperties": false
+    },
+    "manifestHash": {"$ref": "#/$defs/hash"},
+    "files": {
+      "type": "object",
+      "required": ["eligible", "indexed", "gapFiles"],
+      "properties": {
+        "eligible": {"type": "integer", "minimum": 0},
+        "indexed": {"type": "integer", "minimum": 0},
+        "gapFiles": {"type": "array", "items": {"$ref": "#/$defs/relativePath"}, "uniqueItems": true}
+      },
+      "additionalProperties": false
+    },
+    "symbols": {"$ref": "#/$defs/counts"},
+    "relationships": {"$ref": "#/$defs/relationshipCounts"},
+    "coverage": {
+      "type": "object",
+      "required": ["complete", "missingCaptures"],
+      "properties": {
+        "complete": {"type": "boolean"},
+        "missingCaptures": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "relationshipClassificationComplete": {"type": "boolean"},
+        "unresolvedInternalRelationshipCount": {"type": "integer", "minimum": 0},
+        "auditedBoundaryRelationshipCount": {"type": "integer", "minimum": 0},
+        "relationshipCoverageHash": {"$ref": "#/$defs/hash"}
+      },
+      "additionalProperties": false
+    },
+    "snapshotHash": {"$ref": "#/$defs/hash"},
+    "generatedAt": {"type": "string"},
+    "contentHash": {"$ref": "#/$defs/hash"}
+  },
+  "allOf": [{
+    "if": {"properties": {"schemaVersion": {"const": "1.1.0"}}},
+    "then": {"properties": {
+      "relationships": {"required": ["resolvedInternal", "auditedBoundary", "unresolvedInternal", "legacyUnclassified", "coverageHash", "boundaryByType", "boundaryByClass"]},
+      "coverage": {"required": ["relationshipClassificationComplete", "unresolvedInternalRelationshipCount", "auditedBoundaryRelationshipCount", "relationshipCoverageHash"]}
+    }}
+  }],
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "providerIdentity": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["verificationMode", "distribution", "entryPoint", "launcherSha256", "decoderSha256", "recordSha256"],
+          "properties": {
+            "verificationMode": {"const": "installed-record"}, "distribution": {"const": "code-graph-rag"},
+            "entryPoint": {"const": "codebase_rag.cli:app"}, "launcherSha256": {"$ref": "#/$defs/hash"},
+            "decoderSha256": {"$ref": "#/$defs/hash"}, "recordSha256": {"$ref": "#/$defs/hash"}
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["verificationMode", "distribution", "entryPoint", "fixtureHash"],
+          "properties": {
+            "verificationMode": {"const": "fixture-contract"}, "distribution": {"const": "code-graph-rag"},
+            "entryPoint": {"const": "codebase_rag.cli:app"}, "fixtureHash": {"$ref": "#/$defs/hash"}
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "relativePath": {"type": "string", "minLength": 1, "pattern": "^(?!/)(?![A-Za-z]:)(?!.*(?:^|/)\\.\\.(?:/|$))[^\\u0000\\\\]+$"},
+    "counts": {
+      "type": "object",
+      "required": ["count", "unresolved"],
+      "properties": {"count": {"type": "integer", "minimum": 0}, "unresolved": {"type": "integer", "minimum": 0}},
+      "additionalProperties": false
+    },
+    "relationshipCounts": {
+      "type": "object",
+      "required": ["count", "unresolved"],
+      "properties": {
+        "count": {"type": "integer", "minimum": 0},
+        "unresolved": {"type": "integer", "minimum": 0},
+        "resolvedInternal": {"type": "integer", "minimum": 0},
+        "auditedBoundary": {"type": "integer", "minimum": 0},
+        "unresolvedInternal": {"type": "integer", "minimum": 0},
+        "legacyUnclassified": {"type": "integer", "minimum": 0},
+        "coverageHash": {"$ref": "#/$defs/hash"},
+        "boundaryByType": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+        "boundaryByClass": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

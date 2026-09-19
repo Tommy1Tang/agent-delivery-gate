@@ -1,0 +1,38 @@
+{
+  "name": "cross-language migration (Python to Java)",
+  "taskSummary": "将现有 Python Flask 微服务迁移到 Java Spring Boot，保持 API 接口不变，数据库从 SQLite 迁移到 MySQL。",
+  "workflowDomains": [
+    "change-management"
+  ],
+  "expectedWorkflowDomains": [
+    "change-management"
+  ],
+  "expectedRouteContains": [
+    "product-analyst",
+    "architect",
+    "data-engineer",
+    "data-contract-designer",
+    "backend-engineer",
+    "quality-gate-engineer",
+    "browser-e2e-engineer",
+    "supervisor-auditor"
+  ],
+  "expectedRequiredDocuments": [
+    "docs/01-需求规格书.md",
+    "docs/04-详细设计说明书.md",
+    "docs/07-接口数据契约.md",
+    "docs/16-E2E测试用例.md",
+    "docs/17-E2E测试报告.md",
+    "docs/19-监督审计.md"
+  ],
+  "expectedUiAffected": false,
+  "expectedSecuritySensitive": false,
+  "expectedConditionalRoleFlags": {
+    "data-engineer": true
+  },
+  "expectedPlanSnapshot": {
+    "stackDetection": {
+      "deterministic": true
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "name": "PROCESS: pointer advances past satisfied nodes and stops at architect (outputs missing)",
+  "kind": "next-step",
+  "ledger": {
+    "taskName": "pointer regression",
+    "createdAt": "2026-07-29T10:00:00",
+    "deliveryStatus": "in-progress",
+    "roleRuns": [
+      {"roleId": "product-analyst", "status": "completed", "durationMs": 1000},
+      {"roleId": "architect", "status": "completed", "durationMs": 2000}
+    ],
+    "commands": [
+      {"command": "python scripts/preflight_env_check.py --project-root . --json", "status": "pass", "durationMs": 500}
+    ],
+    "artifacts": [],
+    "qualityGates": [],
+    "observability": {}
+  },
+  "projectFixture": {
+    "docs/需求规格书.md": "# 需求规格书\n\nFR-001 建任务\n",
+    "docs/开发计划.md": "# 开发计划\n\n阶段一\n",
+    "docs/任务清单.md": "# 任务清单\n\nT-001\n"
+  },
+  "expectedState": "actionable",
+  "expectedCurrentNode": "SP-04",
+  "expectedNodeType": "role-dispatch",
+  "expectedRole": "architect",
+  "expectedCompletedContains": ["SP-01 环境预检", "SP-03 需求分析"],
+  "expectedUnmetContains": ["详细设计说明书"],
+  "expectedNotApplicableContains": ["SP-02"],
+  "expectedProgress": {"completed": 2}
+}

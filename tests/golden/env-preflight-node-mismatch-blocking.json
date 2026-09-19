@@ -1,0 +1,17 @@
+{
+  "name": "ENV: Node 18 installed but baseline is 22 -> version mismatch is blocking",
+  "kind": "env-preflight",
+  "simulatedTools": {
+    "java": "openjdk version \"17.0.10\" 2024-01-16",
+    "node": "v18.20.4",
+    "mvn": "Apache Maven 3.9.9",
+    "python": "Python 3.12.9",
+    "py312": true,
+    "git": "git version 2.47.1.windows.2"
+  },
+  "expectedStatus": "not-ready",
+  "expectedBlockingContains": [
+    "Node.js 22 baseline",
+    "do NOT uninstall existing"
+  ]
+}

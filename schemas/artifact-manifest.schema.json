@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.qoder/skills/software-development-team/artifact-manifest.schema.json",
+  "title": "Artifact Manifest",
+  "type": "object",
+  "required": [
+    "taskName",
+    "projectRoot",
+    "artifacts"
+  ],
+  "properties": {
+    "taskName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "projectRoot": {
+      "type": "string",
+      "minLength": 1
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "ownerRole",
+          "status"
+        ],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "ownerRole": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "present",
+              "missing",
+              "not-applicable",
+              "stale"
+            ]
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

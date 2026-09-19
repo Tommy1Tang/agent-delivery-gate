@@ -1,0 +1,1117 @@
+{
+  "graphId": "GRAPH-SDT-MATERIALISED",
+  "source": [
+    "assets/config/skill-process.json",
+    "assets/config/skill-ontology.json"
+  ],
+  "nodes": [
+    {
+      "id": "node:SP-01",
+      "kind": "process-node",
+      "name": "环境预检",
+      "type": "gate",
+      "phase": "preflight",
+      "skippable": null
+    },
+    {
+      "id": "node:SP-01A",
+      "kind": "process-node",
+      "name": "环境自动安装",
+      "type": "gate",
+      "phase": "preflight",
+      "skippable": null
+    },
+    {
+      "id": "node:SP-02",
+      "kind": "process-node",
+      "name": "上游输入契约门禁",
+      "type": "gate",
+      "phase": "preflight",
+      "skippable": null
+    },
+    {
+      "id": "node:SP-03",
+      "kind": "process-node",
+      "name": "需求分析",
+      "type": "role-dispatch",
+      "phase": "requirements",
+      "skippable": false
+    },
+    {
+      "id": "role:product-analyst",
+      "kind": "role",
+      "name": "product-analyst"
+    },
+    {
+      "id": "artifact:需求规格书",
+      "kind": "artifact",
+      "name": "需求规格书",
+      "paths": [
+        "docs/需求规格书.md",
+        "docs/01-需求规格书.md"
+      ]
+    },
+    {
+      "id": "node:SP-04",
+      "kind": "process-node",
+      "name": "架构设计",
+      "type": "role-dispatch",
+      "phase": "design",
+      "skippable": false
+    },
+    {
+      "id": "role:architect",
+      "kind": "role",
+      "name": "architect"
+    },
+    {
+      "id": "artifact:开发计划",
+      "kind": "artifact",
+      "name": "开发计划",
+      "paths": [
+        "docs/开发计划.md",
+        "docs/02-开发计划.md"
+      ]
+    },
+    {
+      "id": "artifact:任务清单",
+      "kind": "artifact",
+      "name": "任务清单",
+      "paths": [
+        "docs/任务清单.md",
+        "docs/03-任务清单.md"
+      ]
+    },
+    {
+      "id": "artifact:详细设计说明书",
+      "kind": "artifact",
+      "name": "详细设计说明书",
+      "paths": [
+        "docs/详细设计说明书.md",
+        "docs/04-详细设计说明书.md"
+      ]
+    },
+    {
+      "id": "node:SP-05",
+      "kind": "process-node",
+      "name": "数据设计",
+      "type": "role-dispatch",
+      "phase": "design",
+      "skippable": true
+    },
+    {
+      "id": "role:data-engineer",
+      "kind": "role",
+      "name": "data-engineer"
+    },
+    {
+      "id": "artifact:数据设计说明书",
+      "kind": "artifact",
+      "name": "数据设计说明书",
+      "paths": [
+        "docs/数据设计说明书.md",
+        "docs/05-数据设计说明书.md"
+      ]
+    },
+    {
+      "id": "node:SP-06",
+      "kind": "process-node",
+      "name": "接口数据契约",
+      "type": "role-dispatch",
+      "phase": "design",
+      "skippable": false
+    },
+    {
+      "id": "role:data-contract-designer",
+      "kind": "role",
+      "name": "data-contract-designer"
+    },
+    {
+      "id": "artifact:接口数据契约",
+      "kind": "artifact",
+      "name": "接口数据契约",
+      "paths": [
+        "docs/接口数据契约.md",
+        "docs/07-接口数据契约.md"
+      ]
+    },
+    {
+      "id": "node:SP-07",
+      "kind": "process-node",
+      "name": "性能设计",
+      "type": "role-dispatch",
+      "phase": "design",
+      "skippable": true
+    },
+    {
+      "id": "role:performance-engineer",
+      "kind": "role",
+      "name": "performance-engineer"
+    },
+    {
+      "id": "artifact:性能优化说明",
+      "kind": "artifact",
+      "name": "性能优化说明",
+      "paths": [
+        "docs/性能优化说明.md",
+        "docs/06-性能优化说明.md"
+      ]
+    },
+    {
+      "id": "node:SP-08",
+      "kind": "process-node",
+      "name": "UI 设计",
+      "type": "role-dispatch",
+      "phase": "design",
+      "skippable": true
+    },
+    {
+      "id": "role:ui-designer",
+      "kind": "role",
+      "name": "ui-designer"
+    },
+    {
+      "id": "artifact:UI设计说明",
+      "kind": "artifact",
+      "name": "UI设计说明",
+      "paths": [
+        "docs/UI设计说明.md",
+        "docs/08-UI设计说明.md"
+      ]
+    },
+    {
+      "id": "node:SP-09",
+      "kind": "process-node",
+      "name": "跨层协调",
+      "type": "role-dispatch",
+      "phase": "implementation",
+      "skippable": true
+    },
+    {
+      "id": "role:execution-engineer",
+      "kind": "role",
+      "name": "execution-engineer"
+    },
+    {
+      "id": "node:SP-10",
+      "kind": "process-node",
+      "name": "后端实现",
+      "type": "role-dispatch",
+      "phase": "implementation",
+      "skippable": true
+    },
+    {
+      "id": "role:backend-engineer",
+      "kind": "role",
+      "name": "backend-engineer"
+    },
+    {
+      "id": "node:SP-11",
+      "kind": "process-node",
+      "name": "前端实现",
+      "type": "role-dispatch",
+      "phase": "implementation",
+      "skippable": true
+    },
+    {
+      "id": "role:frontend-engineer",
+      "kind": "role",
+      "name": "frontend-engineer"
+    },
+    {
+      "id": "node:SP-12",
+      "kind": "process-node",
+      "name": "Smoke 前置门禁",
+      "type": "gate",
+      "phase": "implementation",
+      "skippable": null
+    },
+    {
+      "id": "node:SP-13",
+      "kind": "process-node",
+      "name": "质量门禁",
+      "type": "role-dispatch",
+      "phase": "validation-and-review",
+      "skippable": false
+    },
+    {
+      "id": "role:quality-gate-engineer",
+      "kind": "role",
+      "name": "quality-gate-engineer"
+    },
+    {
+      "id": "artifact:单元测试用例",
+      "kind": "artifact",
+      "name": "单元测试用例",
+      "paths": [
+        "docs/单元测试用例.md",
+        "docs/10-单元测试用例.md"
+      ]
+    },
+    {
+      "id": "artifact:单元测试报告",
+      "kind": "artifact",
+      "name": "单元测试报告",
+      "paths": [
+        "docs/单元测试报告.md",
+        "docs/11-单元测试报告.md"
+      ]
+    },
+    {
+      "id": "artifact:集成测试用例",
+      "kind": "artifact",
+      "name": "集成测试用例",
+      "paths": [
+        "docs/集成测试用例.md",
+        "docs/12-集成测试用例.md"
+      ]
+    },
+    {
+      "id": "artifact:集成测试报告",
+      "kind": "artifact",
+      "name": "集成测试报告",
+      "paths": [
+        "docs/集成测试报告.md",
+        "docs/13-集成测试报告.md"
+      ]
+    },
+    {
+      "id": "artifact:代码评审",
+      "kind": "artifact",
+      "name": "代码评审",
+      "paths": [
+        "docs/代码评审.md",
+        "docs/14-代码评审.md"
+      ]
+    },
+    {
+      "id": "artifact:安全评审",
+      "kind": "artifact",
+      "name": "安全评审",
+      "paths": [
+        "docs/安全评审.md",
+        "docs/15-安全评审.md"
+      ]
+    },
+    {
+      "id": "node:SP-14",
+      "kind": "process-node",
+      "name": "E2E 测试",
+      "type": "role-dispatch",
+      "phase": "validation-and-review",
+      "skippable": false
+    },
+    {
+      "id": "role:browser-e2e-engineer",
+      "kind": "role",
+      "name": "browser-e2e-engineer"
+    },
+    {
+      "id": "artifact:E2E测试用例",
+      "kind": "artifact",
+      "name": "E2E测试用例",
+      "paths": [
+        "docs/E2E测试用例.md",
+        "docs/16-E2E测试用例.md"
+      ]
+    },
+    {
+      "id": "artifact:E2E测试报告",
+      "kind": "artifact",
+      "name": "E2E测试报告",
+      "paths": [
+        "docs/E2E测试报告.md",
+        "docs/17-E2E测试报告.md"
+      ]
+    },
+    {
+      "id": "node:SP-15",
+      "kind": "process-node",
+      "name": "部署准备",
+      "type": "role-dispatch",
+      "phase": "release",
+      "skippable": false
+    },
+    {
+      "id": "role:devops-release-engineer",
+      "kind": "role",
+      "name": "devops-release-engineer"
+    },
+    {
+      "id": "artifact:部署说明",
+      "kind": "artifact",
+      "name": "部署说明",
+      "paths": [
+        "docs/部署说明.md",
+        "docs/18-部署说明.md"
+      ]
+    },
+    {
+      "id": "node:SP-16",
+      "kind": "process-node",
+      "name": "文档整理",
+      "type": "role-dispatch",
+      "phase": "closure",
+      "skippable": false
+    },
+    {
+      "id": "role:documentation-writer",
+      "kind": "role",
+      "name": "documentation-writer"
+    },
+    {
+      "id": "node:SP-17",
+      "kind": "process-node",
+      "name": "监督审计",
+      "type": "role-dispatch",
+      "phase": "closure",
+      "skippable": false
+    },
+    {
+      "id": "role:supervisor-auditor",
+      "kind": "role",
+      "name": "supervisor-auditor"
+    },
+    {
+      "id": "artifact:监督审计",
+      "kind": "artifact",
+      "name": "监督审计",
+      "paths": [
+        "docs/监督审计.md",
+        "docs/19-监督审计.md"
+      ]
+    },
+    {
+      "id": "artifact:可观测性报告",
+      "kind": "artifact",
+      "name": "可观测性报告",
+      "paths": [
+        "docs/可观测性报告.md"
+      ]
+    },
+    {
+      "id": "artifact:执行日志",
+      "kind": "artifact",
+      "name": "执行日志",
+      "paths": [
+        "docs/执行日志.md"
+      ]
+    },
+    {
+      "id": "node:SP-18",
+      "kind": "process-node",
+      "name": "交付验收门禁",
+      "type": "gate",
+      "phase": "closure",
+      "skippable": null
+    },
+    {
+      "id": "node:SP-DONE",
+      "kind": "process-node",
+      "name": "交付完成",
+      "type": "terminal",
+      "phase": "closure",
+      "skippable": null
+    },
+    {
+      "id": "node:SP-HALT",
+      "kind": "process-node",
+      "name": "中断挂起",
+      "type": "terminal",
+      "phase": "any",
+      "skippable": null
+    }
+  ],
+  "edges": [
+    {
+      "subject": "node:SP-01",
+      "predicate": "precedes",
+      "object": "node:SP-02"
+    },
+    {
+      "subject": "node:SP-01",
+      "predicate": "precedes",
+      "object": "node:SP-01A"
+    },
+    {
+      "subject": "node:SP-01A",
+      "predicate": "precedes",
+      "object": "node:SP-01"
+    },
+    {
+      "subject": "node:SP-02",
+      "predicate": "precedes",
+      "object": "node:SP-03"
+    },
+    {
+      "subject": "node:SP-02",
+      "predicate": "precedes",
+      "object": "node:SP-03"
+    },
+    {
+      "subject": "node:SP-03",
+      "predicate": "dispatches",
+      "object": "role:product-analyst"
+    },
+    {
+      "subject": "node:SP-03",
+      "predicate": "produces",
+      "object": "artifact:需求规格书"
+    },
+    {
+      "subject": "role:product-analyst",
+      "predicate": "produces",
+      "object": "artifact:需求规格书"
+    },
+    {
+      "subject": "node:SP-03",
+      "predicate": "precedes",
+      "object": "node:SP-04"
+    },
+    {
+      "subject": "node:SP-04",
+      "predicate": "dispatches",
+      "object": "role:architect"
+    },
+    {
+      "subject": "node:SP-04",
+      "predicate": "produces",
+      "object": "artifact:开发计划"
+    },
+    {
+      "subject": "role:architect",
+      "predicate": "produces",
+      "object": "artifact:开发计划"
+    },
+    {
+      "subject": "node:SP-04",
+      "predicate": "produces",
+      "object": "artifact:任务清单"
+    },
+    {
+      "subject": "role:architect",
+      "predicate": "produces",
+      "object": "artifact:任务清单"
+    },
+    {
+      "subject": "node:SP-04",
+      "predicate": "produces",
+      "object": "artifact:详细设计说明书"
+    },
+    {
+      "subject": "role:architect",
+      "predicate": "produces",
+      "object": "artifact:详细设计说明书"
+    },
+    {
+      "subject": "node:SP-04",
+      "predicate": "precedes",
+      "object": "node:SP-05"
+    },
+    {
+      "subject": "node:SP-05",
+      "predicate": "dispatches",
+      "object": "role:data-engineer"
+    },
+    {
+      "subject": "node:SP-05",
+      "predicate": "produces",
+      "object": "artifact:数据设计说明书"
+    },
+    {
+      "subject": "role:data-engineer",
+      "predicate": "produces",
+      "object": "artifact:数据设计说明书"
+    },
+    {
+      "subject": "node:SP-05",
+      "predicate": "precedes",
+      "object": "node:SP-06"
+    },
+    {
+      "subject": "node:SP-05",
+      "predicate": "precedes",
+      "object": "node:SP-06"
+    },
+    {
+      "subject": "node:SP-06",
+      "predicate": "dispatches",
+      "object": "role:data-contract-designer"
+    },
+    {
+      "subject": "node:SP-06",
+      "predicate": "produces",
+      "object": "artifact:接口数据契约"
+    },
+    {
+      "subject": "role:data-contract-designer",
+      "predicate": "produces",
+      "object": "artifact:接口数据契约"
+    },
+    {
+      "subject": "node:SP-06",
+      "predicate": "precedes",
+      "object": "node:SP-07"
+    },
+    {
+      "subject": "node:SP-07",
+      "predicate": "dispatches",
+      "object": "role:performance-engineer"
+    },
+    {
+      "subject": "node:SP-07",
+      "predicate": "produces",
+      "object": "artifact:性能优化说明"
+    },
+    {
+      "subject": "role:performance-engineer",
+      "predicate": "produces",
+      "object": "artifact:性能优化说明"
+    },
+    {
+      "subject": "node:SP-07",
+      "predicate": "precedes",
+      "object": "node:SP-08"
+    },
+    {
+      "subject": "node:SP-07",
+      "predicate": "precedes",
+      "object": "node:SP-08"
+    },
+    {
+      "subject": "node:SP-08",
+      "predicate": "dispatches",
+      "object": "role:ui-designer"
+    },
+    {
+      "subject": "node:SP-08",
+      "predicate": "produces",
+      "object": "artifact:UI设计说明"
+    },
+    {
+      "subject": "role:ui-designer",
+      "predicate": "produces",
+      "object": "artifact:UI设计说明"
+    },
+    {
+      "subject": "node:SP-08",
+      "predicate": "precedes",
+      "object": "node:SP-09"
+    },
+    {
+      "subject": "node:SP-08",
+      "predicate": "precedes",
+      "object": "node:SP-09"
+    },
+    {
+      "subject": "node:SP-09",
+      "predicate": "dispatches",
+      "object": "role:execution-engineer"
+    },
+    {
+      "subject": "node:SP-09",
+      "predicate": "precedes",
+      "object": "node:SP-10"
+    },
+    {
+      "subject": "node:SP-09",
+      "predicate": "precedes",
+      "object": "node:SP-11"
+    },
+    {
+      "subject": "node:SP-09",
+      "predicate": "precedes",
+      "object": "node:SP-10"
+    },
+    {
+      "subject": "node:SP-09",
+      "predicate": "precedes",
+      "object": "node:SP-11"
+    },
+    {
+      "subject": "node:SP-10",
+      "predicate": "dispatches",
+      "object": "role:backend-engineer"
+    },
+    {
+      "subject": "node:SP-10",
+      "predicate": "precedes",
+      "object": "node:SP-12"
+    },
+    {
+      "subject": "node:SP-10",
+      "predicate": "precedes",
+      "object": "node:SP-12"
+    },
+    {
+      "subject": "node:SP-11",
+      "predicate": "dispatches",
+      "object": "role:frontend-engineer"
+    },
+    {
+      "subject": "node:SP-11",
+      "predicate": "precedes",
+      "object": "node:SP-12"
+    },
+    {
+      "subject": "node:SP-11",
+      "predicate": "precedes",
+      "object": "node:SP-12"
+    },
+    {
+      "subject": "node:SP-12",
+      "predicate": "precedes",
+      "object": "node:SP-13"
+    },
+    {
+      "subject": "node:SP-13",
+      "predicate": "dispatches",
+      "object": "role:quality-gate-engineer"
+    },
+    {
+      "subject": "node:SP-13",
+      "predicate": "produces",
+      "object": "artifact:单元测试用例"
+    },
+    {
+      "subject": "role:quality-gate-engineer",
+      "predicate": "produces",
+      "object": "artifact:单元测试用例"
+    },
+    {
+      "subject": "node:SP-13",
+      "predicate": "produces",
+      "object": "artifact:单元测试报告"
+    },
+    {
+      "subject": "role:quality-gate-engineer",
+      "predicate": "produces",
+      "object": "artifact:单元测试报告"
+    },
+    {
+      "subject": "node:SP-13",
+      "predicate": "produces",
+      "object": "artifact:集成测试用例"
+    },
+    {
+      "subject": "role:quality-gate-engineer",
+      "predicate": "produces",
+      "object": "artifact:集成测试用例"
+    },
+    {
+      "subject": "node:SP-13",
+      "predicate": "produces",
+      "object": "artifact:集成测试报告"
+    },
+    {
+      "subject": "role:quality-gate-engineer",
+      "predicate": "produces",
+      "object": "artifact:集成测试报告"
+    },
+    {
+      "subject": "node:SP-13",
+      "predicate": "produces",
+      "object": "artifact:代码评审"
+    },
+    {
+      "subject": "role:quality-gate-engineer",
+      "predicate": "produces",
+      "object": "artifact:代码评审"
+    },
+    {
+      "subject": "node:SP-13",
+      "predicate": "produces",
+      "object": "artifact:安全评审"
+    },
+    {
+      "subject": "role:quality-gate-engineer",
+      "predicate": "produces",
+      "object": "artifact:安全评审"
+    },
+    {
+      "subject": "node:SP-13",
+      "predicate": "precedes",
+      "object": "node:SP-14"
+    },
+    {
+      "subject": "node:SP-14",
+      "predicate": "dispatches",
+      "object": "role:browser-e2e-engineer"
+    },
+    {
+      "subject": "node:SP-14",
+      "predicate": "produces",
+      "object": "artifact:E2E测试用例"
+    },
+    {
+      "subject": "role:browser-e2e-engineer",
+      "predicate": "produces",
+      "object": "artifact:E2E测试用例"
+    },
+    {
+      "subject": "node:SP-14",
+      "predicate": "produces",
+      "object": "artifact:E2E测试报告"
+    },
+    {
+      "subject": "role:browser-e2e-engineer",
+      "predicate": "produces",
+      "object": "artifact:E2E测试报告"
+    },
+    {
+      "subject": "node:SP-14",
+      "predicate": "precedes",
+      "object": "node:SP-15"
+    },
+    {
+      "subject": "node:SP-15",
+      "predicate": "dispatches",
+      "object": "role:devops-release-engineer"
+    },
+    {
+      "subject": "node:SP-15",
+      "predicate": "produces",
+      "object": "artifact:部署说明"
+    },
+    {
+      "subject": "role:devops-release-engineer",
+      "predicate": "produces",
+      "object": "artifact:部署说明"
+    },
+    {
+      "subject": "node:SP-15",
+      "predicate": "precedes",
+      "object": "node:SP-16"
+    },
+    {
+      "subject": "node:SP-16",
+      "predicate": "dispatches",
+      "object": "role:documentation-writer"
+    },
+    {
+      "subject": "node:SP-16",
+      "predicate": "precedes",
+      "object": "node:SP-17"
+    },
+    {
+      "subject": "node:SP-17",
+      "predicate": "dispatches",
+      "object": "role:supervisor-auditor"
+    },
+    {
+      "subject": "node:SP-17",
+      "predicate": "produces",
+      "object": "artifact:监督审计"
+    },
+    {
+      "subject": "role:supervisor-auditor",
+      "predicate": "produces",
+      "object": "artifact:监督审计"
+    },
+    {
+      "subject": "node:SP-17",
+      "predicate": "produces",
+      "object": "artifact:可观测性报告"
+    },
+    {
+      "subject": "role:supervisor-auditor",
+      "predicate": "produces",
+      "object": "artifact:可观测性报告"
+    },
+    {
+      "subject": "node:SP-17",
+      "predicate": "produces",
+      "object": "artifact:执行日志"
+    },
+    {
+      "subject": "role:supervisor-auditor",
+      "predicate": "produces",
+      "object": "artifact:执行日志"
+    },
+    {
+      "subject": "node:SP-17",
+      "predicate": "precedes",
+      "object": "node:SP-18"
+    },
+    {
+      "subject": "node:SP-04",
+      "predicate": "requires",
+      "object": "artifact:需求规格书"
+    },
+    {
+      "subject": "node:SP-05",
+      "predicate": "requires",
+      "object": "artifact:详细设计说明书"
+    },
+    {
+      "subject": "node:SP-06",
+      "predicate": "requires",
+      "object": "artifact:详细设计说明书"
+    },
+    {
+      "subject": "node:SP-07",
+      "predicate": "requires",
+      "object": "artifact:详细设计说明书"
+    },
+    {
+      "subject": "node:SP-08",
+      "predicate": "requires",
+      "object": "artifact:需求规格书"
+    },
+    {
+      "subject": "node:SP-09",
+      "predicate": "requires",
+      "object": "artifact:任务清单"
+    },
+    {
+      "subject": "node:SP-09",
+      "predicate": "requires",
+      "object": "artifact:接口数据契约"
+    },
+    {
+      "subject": "node:SP-10",
+      "predicate": "requires",
+      "object": "artifact:任务清单"
+    },
+    {
+      "subject": "node:SP-10",
+      "predicate": "requires",
+      "object": "artifact:接口数据契约"
+    },
+    {
+      "subject": "node:SP-11",
+      "predicate": "requires",
+      "object": "artifact:接口数据契约"
+    },
+    {
+      "subject": "node:SP-11",
+      "predicate": "requires",
+      "object": "artifact:UI设计说明"
+    },
+    {
+      "subject": "node:SP-13",
+      "predicate": "requires",
+      "object": "artifact:需求规格书"
+    },
+    {
+      "subject": "node:SP-13",
+      "predicate": "requires",
+      "object": "artifact:任务清单"
+    },
+    {
+      "subject": "node:SP-13",
+      "predicate": "requires",
+      "object": "artifact:接口数据契约"
+    },
+    {
+      "subject": "node:SP-14",
+      "predicate": "requires",
+      "object": "artifact:需求规格书"
+    },
+    {
+      "subject": "node:SP-15",
+      "predicate": "requires",
+      "object": "artifact:详细设计说明书"
+    },
+    {
+      "subject": "node:SP-16",
+      "predicate": "requires",
+      "object": "artifact:E2E测试报告"
+    },
+    {
+      "subject": "node:SP-16",
+      "predicate": "requires",
+      "object": "artifact:E2E测试用例"
+    },
+    {
+      "subject": "node:SP-16",
+      "predicate": "requires",
+      "object": "artifact:UI设计说明"
+    },
+    {
+      "subject": "node:SP-16",
+      "predicate": "requires",
+      "object": "artifact:代码评审"
+    },
+    {
+      "subject": "node:SP-16",
+      "predicate": "requires",
+      "object": "artifact:任务清单"
+    },
+    {
+      "subject": "node:SP-16",
+      "predicate": "requires",
+      "object": "artifact:单元测试报告"
+    },
+    {
+      "subject": "node:SP-16",
+      "predicate": "requires",
+      "object": "artifact:单元测试用例"
+    },
+    {
+      "subject": "node:SP-16",
+      "predicate": "requires",
+      "object": "artifact:可观测性报告"
+    },
+    {
+      "subject": "node:SP-16",
+      "predicate": "requires",
+      "object": "artifact:安全评审"
+    },
+    {
+      "subject": "node:SP-16",
+      "predicate": "requires",
+      "object": "artifact:开发计划"
+    },
+    {
+      "subject": "node:SP-16",
+      "predicate": "requires",
+      "object": "artifact:性能优化说明"
+    },
+    {
+      "subject": "node:SP-16",
+      "predicate": "requires",
+      "object": "artifact:执行日志"
+    },
+    {
+      "subject": "node:SP-16",
+      "predicate": "requires",
+      "object": "artifact:接口数据契约"
+    },
+    {
+      "subject": "node:SP-16",
+      "predicate": "requires",
+      "object": "artifact:数据设计说明书"
+    },
+    {
+      "subject": "node:SP-16",
+      "predicate": "requires",
+      "object": "artifact:监督审计"
+    },
+    {
+      "subject": "node:SP-16",
+      "predicate": "requires",
+      "object": "artifact:详细设计说明书"
+    },
+    {
+      "subject": "node:SP-16",
+      "predicate": "requires",
+      "object": "artifact:部署说明"
+    },
+    {
+      "subject": "node:SP-16",
+      "predicate": "requires",
+      "object": "artifact:集成测试报告"
+    },
+    {
+      "subject": "node:SP-16",
+      "predicate": "requires",
+      "object": "artifact:集成测试用例"
+    },
+    {
+      "subject": "node:SP-16",
+      "predicate": "requires",
+      "object": "artifact:需求规格书"
+    },
+    {
+      "subject": "node:SP-17",
+      "predicate": "requires",
+      "object": "artifact:E2E测试报告"
+    },
+    {
+      "subject": "node:SP-17",
+      "predicate": "requires",
+      "object": "artifact:E2E测试用例"
+    },
+    {
+      "subject": "node:SP-17",
+      "predicate": "requires",
+      "object": "artifact:UI设计说明"
+    },
+    {
+      "subject": "node:SP-17",
+      "predicate": "requires",
+      "object": "artifact:代码评审"
+    },
+    {
+      "subject": "node:SP-17",
+      "predicate": "requires",
+      "object": "artifact:任务清单"
+    },
+    {
+      "subject": "node:SP-17",
+      "predicate": "requires",
+      "object": "artifact:单元测试报告"
+    },
+    {
+      "subject": "node:SP-17",
+      "predicate": "requires",
+      "object": "artifact:单元测试用例"
+    },
+    {
+      "subject": "node:SP-17",
+      "predicate": "requires",
+      "object": "artifact:可观测性报告"
+    },
+    {
+      "subject": "node:SP-17",
+      "predicate": "requires",
+      "object": "artifact:安全评审"
+    },
+    {
+      "subject": "node:SP-17",
+      "predicate": "requires",
+      "object": "artifact:开发计划"
+    },
+    {
+      "subject": "node:SP-17",
+      "predicate": "requires",
+      "object": "artifact:性能优化说明"
+    },
+    {
+      "subject": "node:SP-17",
+      "predicate": "requires",
+      "object": "artifact:执行日志"
+    },
+    {
+      "subject": "node:SP-17",
+      "predicate": "requires",
+      "object": "artifact:接口数据契约"
+    },
+    {
+      "subject": "node:SP-17",
+      "predicate": "requires",
+      "object": "artifact:数据设计说明书"
+    },
+    {
+      "subject": "node:SP-17",
+      "predicate": "requires",
+      "object": "artifact:监督审计"
+    },
+    {
+      "subject": "node:SP-17",
+      "predicate": "requires",
+      "object": "artifact:详细设计说明书"
+    },
+    {
+      "subject": "node:SP-17",
+      "predicate": "requires",
+      "object": "artifact:部署说明"
+    },
+    {
+      "subject": "node:SP-17",
+      "predicate": "requires",
+      "object": "artifact:集成测试报告"
+    },
+    {
+      "subject": "node:SP-17",
+      "predicate": "requires",
+      "object": "artifact:集成测试用例"
+    },
+    {
+      "subject": "node:SP-17",
+      "predicate": "requires",
+      "object": "artifact:需求规格书"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "name": "pure documentation refactor (no code)",
+  "taskSummary": "重构项目文档结构：统一 API 文档格式、补全架构决策记录 (ADR)、添加贡献指南和变更日志。",
+  "workflowDomains": [
+    "forward-development"
+  ],
+  "expectedWorkflowDomains": [
+    "forward-development"
+  ],
+  "expectedRouteContains": [
+    "product-analyst",
+    "architect",
+    "documentation-writer",
+    "quality-gate-engineer",
+    "browser-e2e-engineer",
+    "supervisor-auditor"
+  ],
+  "expectedRequiredDocuments": [
+    "docs/01-需求规格书.md",
+    "docs/04-详细设计说明书.md",
+    "docs/16-E2E测试用例.md",
+    "docs/17-E2E测试报告.md",
+    "docs/19-监督审计.md"
+  ],
+  "expectedUiAffected": false,
+  "expectedSecuritySensitive": false,
+  "expectedPlanSnapshot": {
+    "stackDetection": {
+      "deterministic": true
+    }
+  }
+}

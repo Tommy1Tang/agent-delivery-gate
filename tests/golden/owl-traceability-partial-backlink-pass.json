@@ -1,0 +1,10 @@
+{
+  "name": "OWL-TRACE: partial entity back-link is legitimate (OWL->DB not 1:1) => gate 23 passes",
+  "kind": "owl-traceability",
+  "projectFixture": {
+    "docs/input/02-领域模型.md": "# 领域模型\n\n| entity_id | 名称 |\n|---|---|\n| ENT-Task | 检验任务 |\n| ENT-RawTask | 原料检验任务（ENT-Task 子类） |\n| ENT-Sample | 样本 |\n",
+    "docs/input/models/ontology/domain.owl": "<?xml version=\"1.0\"?><rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:owl=\"http://www.w3.org/2002/07/owl#\"><owl:Class rdf:about=\"http://x#ENT-Task\"/><owl:Class rdf:about=\"http://x#ENT-RawTask\"/><owl:Class rdf:about=\"http://x#ENT-Sample\"/></rdf:RDF>",
+    "docs/05-数据设计说明书.md": "# 数据设计说明书\n\n## 表结构\n\n| 表名 | 字段 | OWL 回链 |\n|---|---|---|\n| t_task | id, type, name | ENT-Task（单表继承策略，ENT-RawTask 以 type 判别列合并，理由：子类少且多按父类整体查询） |\n"
+  },
+  "expectBlocking": false
+}

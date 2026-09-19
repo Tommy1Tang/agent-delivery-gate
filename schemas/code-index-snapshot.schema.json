@@ -1,0 +1,188 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.qoder/skills/software-development-team/code-index-snapshot.schema.json",
+  "title": "Canonical Code Index Snapshot",
+  "type": "object",
+  "required": ["schemaVersion", "snapshotId", "repositoryId", "manifestHash", "sourceDigest", "files", "symbols", "relationships", "unresolvedSymbols", "unresolvedRelationships", "coverage", "freshness", "providerState", "integrity", "generatedAt", "contentHash"],
+  "properties": {
+    "schemaVersion": {"enum": ["1.0.0", "1.1.0"]},
+    "snapshotId": {"type": "string", "pattern": "^CIS-[0-9a-f]{24}$"},
+    "repositoryId": {"type": "string", "minLength": 1},
+    "manifestHash": {"$ref": "#/$defs/hash"},
+    "sourceDigest": {"$ref": "#/$defs/hash"},
+    "files": {"type": "array", "items": {"$ref": "#/$defs/file"}},
+    "symbols": {"type": "array", "items": {"$ref": "#/$defs/symbol"}},
+    "relationships": {"type": "array", "items": {"$ref": "#/$defs/relationship"}},
+    "boundaryRelationships": {"type": "array", "items": {"$ref": "#/$defs/boundaryRelationship"}},
+    "unresolvedInternalRelationships": {"type": "array", "items": {"$ref": "#/$defs/internalGap"}},
+    "unresolvedSymbols": {"type": "array", "items": {"type": "object"}},
+    "unresolvedRelationships": {"type": "array", "items": {"type": "object"}},
+    "relationshipCoverage": {"$ref": "#/$defs/relationshipCoverage"},
+    "providerNodeInventory": {"$ref": "#/$defs/providerNodeInventory"},
+    "coverage": {"$ref": "#/$defs/coverage"},
+    "freshness": {
+      "type": "object",
+      "required": ["headMatches", "sourceDigestMatches", "configMatches", "sourceChangedDuringAnalysis"],
+      "properties": {"headMatches": {"type": "boolean"}, "sourceDigestMatches": {"type": "boolean"}, "configMatches": {"type": "boolean"}, "sourceChangedDuringAnalysis": {"type": "boolean"}},
+      "additionalProperties": false
+    },
+    "providerState": {
+      "type": "object",
+      "required": ["available", "schemaMatches", "identityVerified", "version", "codecSchemaSha256", "configHash", "identity"],
+      "properties": {
+        "available": {"type": "boolean"}, "schemaMatches": {"type": "boolean"}, "identityVerified": {"const": true}, "version": {"const": "0.0.779"},
+        "codecSchemaSha256": {"const": "09e1c5e0b1b58c5e02c3e55e99e438625dfeed0caf3839a5b782d9196b348e84"}, "configHash": {"$ref": "#/$defs/hash"},
+        "identity": {"$ref": "#/$defs/providerIdentity"}
+      },
+      "additionalProperties": false
+    },
+    "integrity": {"type": "object", "required": ["valid"], "properties": {"valid": {"type": "boolean"}}, "additionalProperties": true},
+    "generatedAt": {"type": "string"},
+    "contentHash": {"$ref": "#/$defs/hash"}
+  },
+  "allOf": [{
+    "if": {"properties": {"schemaVersion": {"const": "1.1.0"}}},
+    "then": {
+      "required": ["boundaryRelationships", "unresolvedInternalRelationships", "relationshipCoverage", "providerNodeInventory"],
+      "properties": {
+        "files": {"type": "array", "items": {"$ref": "#/$defs/file11"}},
+        "relationships": {"type": "array", "items": {"$ref": "#/$defs/relationship11"}},
+        "unresolvedRelationships": {"type": "array", "items": {"$ref": "#/$defs/legacyUnresolved"}}
+      }
+    }
+  }],
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "providerIdentity": {
+      "oneOf": [
+        {
+          "type": "object", "required": ["verificationMode", "distribution", "entryPoint", "launcherSha256", "decoderSha256", "recordSha256"],
+          "properties": {
+            "verificationMode": {"const": "installed-record"}, "distribution": {"const": "code-graph-rag"}, "entryPoint": {"const": "codebase_rag.cli:app"},
+            "launcherSha256": {"$ref": "#/$defs/hash"}, "decoderSha256": {"$ref": "#/$defs/hash"}, "recordSha256": {"$ref": "#/$defs/hash"}
+          }, "additionalProperties": false
+        },
+        {
+          "type": "object", "required": ["verificationMode", "distribution", "entryPoint", "fixtureHash"],
+          "properties": {
+            "verificationMode": {"const": "fixture-contract"}, "distribution": {"const": "code-graph-rag"}, "entryPoint": {"const": "codebase_rag.cli:app"},
+            "fixtureHash": {"$ref": "#/$defs/hash"}
+          }, "additionalProperties": false
+        }
+      ]
+    },
+    "relativePath": {"type": "string", "minLength": 1, "pattern": "^(?!/)(?![A-Za-z]:)(?!.*(?:^|/)\\.\\.(?:/|$))[^\\u0000\\\\]+$"},
+    "file": {
+      "type": "object", "required": ["relativePath", "language", "size", "sha256"],
+      "properties": {
+        "relativePath": {"$ref": "#/$defs/relativePath"}, "language": {"type": "string"}, "size": {"type": "integer", "minimum": 0},
+        "sizeBytes": {"type": "integer", "minimum": 0}, "lineCount": {"type": "integer", "minimum": 0}, "sha256": {"$ref": "#/$defs/hash"},
+        "eligibility": {"enum": ["ELIGIBLE", "EXCLUDED", "UNSUPPORTED"]}, "coverageStatus": {"enum": ["INDEXED", "GAP", "NOT_APPLICABLE"]},
+        "coverageReason": {"type": "string", "minLength": 1, "maxLength": 256}
+      },
+      "additionalProperties": false
+    },
+    "file11": {"allOf": [{"$ref": "#/$defs/file"}, {"required": ["sizeBytes", "lineCount", "eligibility", "coverageStatus"]}]},
+    "symbol": {
+      "type": "object", "required": ["repositoryId", "relativePath", "qualifiedName", "symbolKind", "startLine", "endLine", "manifestHash", "symbolId"],
+      "properties": {
+        "repositoryId": {"type": "string", "minLength": 1}, "relativePath": {"$ref": "#/$defs/relativePath"}, "qualifiedName": {"type": "string", "minLength": 1, "maxLength": 1024},
+        "symbolKind": {"enum": ["MODULE", "CLASS", "FUNCTION", "METHOD", "INTERFACE", "ENUM", "TYPE", "UNION", "SECTION"]},
+        "startLine": {"type": "integer", "minimum": 1}, "endLine": {"type": "integer", "minimum": 1}, "manifestHash": {"$ref": "#/$defs/hash"}, "symbolId": {"$ref": "#/$defs/hash"}
+      },
+      "additionalProperties": false
+    },
+    "relationType": {"enum": ["CONTAINS", "DEFINES", "CALLS", "REFERENCES", "INSTANTIATES", "INHERITS", "IMPLEMENTS", "OVERRIDES", "IMPORTS", "EXPORTS", "EXPORTS_MODULE", "IMPLEMENTS_MODULE", "EXPOSES", "RESOLVES_TO", "LINKS_TO", "FLOWS_TO"]},
+    "resolution": {"enum": ["DIRECT_SYMBOL", "MODULE_SYMBOL", "ELIGIBLE_FILE_TO_MODULE"]},
+    "relationship": {
+      "type": "object", "required": ["relationshipId", "sourceSymbolId", "type", "targetSymbolId"],
+      "properties": {
+        "relationshipId": {"$ref": "#/$defs/hash"}, "rawRelationshipId": {"$ref": "#/$defs/hash"}, "sourceSymbolId": {"$ref": "#/$defs/hash"},
+        "type": {"type": "string", "minLength": 1}, "targetSymbolId": {"$ref": "#/$defs/hash"}, "resolutionClass": {"const": "RESOLVED_INTERNAL"},
+        "sourceResolution": {"$ref": "#/$defs/resolution"}, "targetResolution": {"$ref": "#/$defs/resolution"}, "classificationOrigin": {"enum": ["LEGACY_RESOLVED", "LEGACY_UNRESOLVED"]}
+      },
+      "additionalProperties": false
+    },
+    "relationship11": {"allOf": [{"$ref": "#/$defs/relationship"}, {"required": ["rawRelationshipId", "resolutionClass", "sourceResolution", "targetResolution", "classificationOrigin"], "properties": {"type": {"$ref": "#/$defs/relationType"}}}]},
+    "classificationEvidence": {
+      "type": "object", "required": ["method", "ruleId", "artifactHash"],
+      "properties": {
+        "method": {"enum": ["STDLIB_CATALOG", "DEPENDENCY_MANIFEST", "REPOSITORY_MODULE_INVENTORY_NEGATIVE", "ELIGIBILITY_INVENTORY", "MARKDOWN_LINK_RESOLUTION"]},
+        "ruleId": {"type": "string", "minLength": 1}, "artifactHash": {"$ref": "#/$defs/hash"}
+      },
+      "additionalProperties": false
+    },
+    "boundaryRelationship": {
+      "type": "object",
+      "required": ["boundaryRelationshipId", "rawRelationshipId", "type", "internalSymbolId", "internalRole", "boundaryRole", "boundaryClass", "boundaryKind", "boundaryKey", "boundaryKeyHash", "classificationEvidence", "classificationStatus", "traversalPolicy", "classificationOrigin"],
+      "properties": {
+        "boundaryRelationshipId": {"$ref": "#/$defs/hash"}, "rawRelationshipId": {"$ref": "#/$defs/hash"}, "type": {"$ref": "#/$defs/relationType"}, "internalSymbolId": {"$ref": "#/$defs/hash"},
+        "internalRole": {"enum": ["SOURCE", "TARGET"]}, "boundaryRole": {"enum": ["SOURCE", "TARGET"]}, "boundaryClass": {"enum": ["EXTERNAL", "REPOSITORY_NON_ELIGIBLE"]},
+        "boundaryKind": {"enum": ["STANDARD_LIBRARY", "DECLARED_DEPENDENCY", "UNDECLARED_EXTERNAL_MODULE", "NON_ELIGIBLE_FILE", "UNSUPPORTED_FILE"]},
+        "boundaryKey": {"type": "string", "minLength": 1, "maxLength": 1024}, "boundaryKeyHash": {"$ref": "#/$defs/hash"},
+        "classificationEvidence": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/classificationEvidence"}},
+        "classificationStatus": {"const": "AUDITED"}, "traversalPolicy": {"const": "STOP_AT_BOUNDARY"}, "classificationOrigin": {"enum": ["LEGACY_RESOLVED", "LEGACY_UNRESOLVED"]}
+      },
+      "additionalProperties": false
+    },
+    "internalGap": {
+      "type": "object",
+      "required": ["gapId", "rawRelationshipId", "type", "sourceProviderLabel", "sourceProviderIdHash", "targetProviderLabel", "targetProviderIdHash", "sourceEligible", "targetEligible", "knownRelativePaths", "reasonCode", "evidenceHashes", "blocksCoverage", "classificationOrigin"],
+      "properties": {
+        "gapId": {"$ref": "#/$defs/hash"}, "rawRelationshipId": {"$ref": "#/$defs/hash"}, "type": {"type": "string", "minLength": 1},
+        "sourceProviderLabel": {"type": "string"}, "sourceProviderIdHash": {"$ref": "#/$defs/hash"}, "targetProviderLabel": {"type": "string"}, "targetProviderIdHash": {"$ref": "#/$defs/hash"},
+        "sourceEligible": {"type": "boolean"}, "targetEligible": {"type": "boolean"}, "knownRelativePaths": {"type": "array", "items": {"$ref": "#/$defs/relativePath"}, "uniqueItems": true},
+        "reasonCode": {"enum": ["INTERNAL_SOURCE_UNRESOLVED", "INTERNAL_TARGET_UNRESOLVED", "INTERNAL_BOTH_UNRESOLVED", "INTERNAL_ENDPOINT_AMBIGUOUS", "INTERNAL_MODULE_MISSING", "INTERNAL_FILE_TO_MODULE_PROJECTION_FAILED", "INTERNAL_RELATION_TYPE_UNSUPPORTED"]},
+        "evidenceHashes": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/hash"}, "uniqueItems": true}, "blocksCoverage": {"const": true},
+        "classificationOrigin": {"enum": ["LEGACY_RESOLVED", "LEGACY_UNRESOLVED"]}
+      },
+      "additionalProperties": false
+    },
+    "legacyUnresolved": {
+      "type": "object", "required": ["type", "sourceProviderIdHash", "targetProviderIdHash", "reasonCode"],
+      "properties": {"type": {"type": "string", "minLength": 1}, "sourceProviderIdHash": {"$ref": "#/$defs/hash"}, "targetProviderIdHash": {"$ref": "#/$defs/hash"}, "reasonCode": {"type": "string", "minLength": 1}},
+      "additionalProperties": false
+    },
+    "typeCount": {
+      "type": "object", "required": ["type", "providerCount", "resolvedInternalCount", "auditedBoundaryCount", "unresolvedInternalCount", "legacyUnclassifiedCount"],
+      "properties": {"type": {"type": "string", "minLength": 1}, "providerCount": {"type": "integer", "minimum": 0}, "resolvedInternalCount": {"type": "integer", "minimum": 0}, "auditedBoundaryCount": {"type": "integer", "minimum": 0}, "unresolvedInternalCount": {"type": "integer", "minimum": 0}, "legacyUnclassifiedCount": {"type": "integer", "minimum": 0}},
+      "additionalProperties": false
+    },
+    "relationshipProfile": {
+      "type": "object",
+      "required": ["nonStructuralProviderRelationshipCount", "resolvedInternalRelationshipCount", "auditedBoundaryRelationshipCount", "unresolvedInternalRelationshipCount", "rawRelationshipIdsHash", "resolvedInternalRawIdsHash", "auditedBoundaryRawIdsHash", "unresolvedInternalRawIdsHash", "accountingComplete"],
+      "properties": {
+        "nonStructuralProviderRelationshipCount": {"type": "integer", "minimum": 0}, "resolvedInternalRelationshipCount": {"type": "integer", "minimum": 0}, "auditedBoundaryRelationshipCount": {"type": "integer", "minimum": 0}, "unresolvedInternalRelationshipCount": {"type": "integer", "minimum": 0},
+        "rawRelationshipIdsHash": {"$ref": "#/$defs/hash"}, "resolvedInternalRawIdsHash": {"$ref": "#/$defs/hash"}, "auditedBoundaryRawIdsHash": {"$ref": "#/$defs/hash"}, "unresolvedInternalRawIdsHash": {"$ref": "#/$defs/hash"}, "accountingComplete": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "relationshipCoverage": {
+      "type": "object",
+      "required": ["schemaVersion", "classificationContractVersion", "classifiableProviderRelationshipCount", "resolvedInternalCount", "auditedBoundaryCount", "unresolvedInternalCount", "legacyUnclassifiedCount", "typeCounts", "classificationComplete", "internalGraphComplete", "boundaryClassificationComplete", "profile", "contentHash"],
+      "properties": {
+        "schemaVersion": {"const": "1.0.0"}, "classificationContractVersion": {"const": "1.0.0"}, "classifiableProviderRelationshipCount": {"type": "integer", "minimum": 0},
+        "resolvedInternalCount": {"type": "integer", "minimum": 0}, "auditedBoundaryCount": {"type": "integer", "minimum": 0}, "unresolvedInternalCount": {"type": "integer", "minimum": 0}, "legacyUnclassifiedCount": {"type": "integer", "minimum": 0},
+        "typeCounts": {"type": "array", "items": {"$ref": "#/$defs/typeCount"}}, "classificationComplete": {"type": "boolean"}, "internalGraphComplete": {"type": "boolean"}, "boundaryClassificationComplete": {"type": "boolean"},
+        "profile": {"$ref": "#/$defs/relationshipProfile"}, "contentHash": {"$ref": "#/$defs/hash"}
+      },
+      "additionalProperties": false
+    },
+    "providerNodeInventory": {
+      "type": "object", "required": ["rawCount", "byLabel", "inventoryHash"],
+      "properties": {"rawCount": {"type": "integer", "minimum": 0}, "byLabel": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}}, "inventoryHash": {"$ref": "#/$defs/hash"}},
+      "additionalProperties": false
+    },
+    "coverage": {
+      "type": "object", "required": ["complete", "gapFiles", "missingCaptures"],
+      "properties": {
+        "complete": {"type": "boolean"}, "eligibleFileCount": {"type": "integer", "minimum": 0}, "indexedFileCount": {"type": "integer", "minimum": 0},
+        "gapFiles": {"type": "array", "items": {"$ref": "#/$defs/relativePath"}, "uniqueItems": true}, "requiredCaptures": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}, "missingCaptures": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "relationshipClassificationComplete": {"type": "boolean"}, "unresolvedInternalRelationshipCount": {"type": "integer", "minimum": 0}, "auditedBoundaryRelationshipCount": {"type": "integer", "minimum": 0},
+        "providerNodeInventoryHash": {"$ref": "#/$defs/hash"}, "relationshipCoverageHash": {"$ref": "#/$defs/hash"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

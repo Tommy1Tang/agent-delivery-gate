@@ -1,0 +1,26 @@
+{
+  "name": "negative: implicit security trigger must not be bypassed by explicit forward-development domain",
+  "taskSummary": "新增基于 token 的接口鉴权和权限校验中间件，处理用户认证和敏感数据访问。",
+  "workflowDomains": [
+    "forward-development"
+  ],
+  "expectedWorkflowDomains": [
+    "forward-development",
+    "security-governance"
+  ],
+  "expectedRouteContains": [
+    "product-analyst",
+    "architect",
+    "quality-gate-engineer",
+    "supervisor-auditor"
+  ],
+  "expectedRequiredDocuments": [
+    "docs/01-需求规格书.md",
+    "docs/04-详细设计说明书.md",
+    "docs/07-接口数据契约.md",
+    "docs/14-代码评审.md",
+    "docs/19-监督审计.md"
+  ],
+  "expectedUiAffected": false,
+  "expectedSecuritySensitive": true
+}

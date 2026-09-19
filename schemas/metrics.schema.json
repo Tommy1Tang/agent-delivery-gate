@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.qoder/skills/software-development-team/metrics.schema.json",
+  "title": "Harness Metrics",
+  "type": "object",
+  "required": [
+    "ledgerCount",
+    "roleRunCount",
+    "fallbackCount",
+    "commandCount",
+    "qualityGateCount",
+    "failedGateCount",
+    "roleTiming",
+    "retryTotal",
+    "documentMissingRate",
+    "testPassRate",
+    "securityBlockCount",
+    "reworkCount"
+  ],
+  "properties": {
+    "ledgerCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "roleRunCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "fallbackCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "commandCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "qualityGateCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "failedGateCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "roleTiming": {
+      "type": "object",
+      "description": "Timing per role in milliseconds",
+      "required": ["totalMs", "perRole"],
+      "properties": {
+        "totalMs": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "perRole": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["durationMs", "count"],
+            "properties": {
+              "durationMs": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "avgMs": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "retryTotal": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total retries across all roles"
+    },
+    "blockingReasons": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["roleId", "reason"],
+        "properties": {
+          "roleId": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "default": []
+    },
+    "documentMissingRate": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Fraction of required documents missing (0 = all present, 1 = all missing)"
+    },
+    "documentDetails": {
+      "type": "object",
+      "description": "Per-document presence status",
+      "properties": {
+        "expected": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "present": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "missing": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        }
+      }
+    },
+    "testPassRate": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Fraction of test cases passing (1 = all pass)"
+    },
+    "testDetails": {
+      "type": "object",
+      "description": "Test result breakdown",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pass": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fail": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "blocked": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "skip": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "securityBlockCount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of security review blocks"
+    },
+    "securityBlockDetails": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "reworkCount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of user-initiated rework cycles"
+    },
+    "reworkReasons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "roles": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 0
+      }
+    }
+  },
+  "additionalProperties": false
+}

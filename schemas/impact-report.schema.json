@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.qoder/skills/software-development-team/impact-report.schema.json",
+  "title": "Deterministic Code Impact Report",
+  "type": "object",
+  "required": ["schemaVersion", "impactReportId", "analysisRunId", "requestHash", "manifestHash", "traceBridgeHash", "sourceDigest", "seedResolution", "scope", "coverage", "affected", "recommendedTests", "verdict", "unknownReasons", "freshness", "generatedAt", "contentHash"],
+  "properties": {
+    "schemaVersion": {"enum": ["1.0.0", "1.1.0"]},
+    "impactReportId": {"type": "string", "pattern": "^CIRP-[0-9a-f]{24}$"},
+    "analysisRunId": {"type": "string", "minLength": 1},
+    "requestHash": {"$ref": "#/$defs/hash"},
+    "manifestHash": {"$ref": "#/$defs/hash"},
+    "traceBridgeHash": {"$ref": "#/$defs/hash"},
+    "sourceDigest": {"$ref": "#/$defs/hash"},
+    "seedResolution": {
+      "type": "object",
+      "required": ["status", "symbols", "requirements", "files"],
+      "properties": {
+        "status": {"enum": ["RESOLVED", "AMBIGUOUS", "NOT_FOUND"]},
+        "symbols": {"type": "array", "items": {"type": "object"}},
+        "requirements": {"type": "array", "items": {"type": "string"}},
+        "files": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "scope": {
+      "type": "object",
+      "required": ["relations", "directions", "maxDepth", "maxNodes", "timeoutSeconds"],
+      "properties": {
+        "relations": {"type": "array", "items": {"type": "string"}},
+        "directions": {"const": "BOTH"},
+        "maxDepth": {"type": "integer", "minimum": 0},
+        "maxNodes": {"type": "integer", "minimum": 1},
+        "timeoutSeconds": {"type": "number", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "coverage": {
+      "type": "object",
+      "required": ["complete", "gapFiles", "missingCaptures", "unresolvedSymbolCount", "unresolvedRelationshipCount"],
+      "properties": {
+        "complete": {"type": "boolean"},
+        "gapFiles": {"type": "array", "items": {"type": "string"}},
+        "missingCaptures": {"type": "array", "items": {"type": "string"}},
+        "unresolvedSymbolCount": {"type": "integer", "minimum": 0},
+        "unresolvedRelationshipCount": {"type": "integer", "minimum": 0},
+        "resolvedInternalRelationshipCount": {"type": "integer", "minimum": 0},
+        "auditedBoundaryRelationshipCount": {"type": "integer", "minimum": 0},
+        "unresolvedInternalRelationshipCount": {"type": "integer", "minimum": 0},
+        "legacyUnclassifiedRelationshipCount": {"type": "integer", "minimum": 0},
+        "boundaryClassificationComplete": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "affected": {
+      "type": "object",
+      "required": ["symbols", "files", "requirements", "tests", "relationPaths"],
+      "properties": {
+        "symbols": {"type": "array", "items": {"type": "object"}},
+        "files": {"type": "array", "items": {"type": "string"}},
+        "requirements": {"type": "array", "items": {"type": "string"}},
+        "tests": {"type": "array", "items": {"type": "string"}},
+        "relationPaths": {"type": "array", "items": {"$ref": "#/$defs/path"}},
+        "boundaryRelationships": {"type": "array", "items": {"$ref": "#/$defs/boundary"}},
+        "boundarySummary": {"$ref": "#/$defs/boundarySummary"}
+      },
+      "additionalProperties": false
+    },
+    "recommendedTests": {"type": "array", "items": {"type": "string"}},
+    "verdict": {"enum": ["FOUND", "NO_IMPACT", "UNKNOWN"]},
+    "unknownReasons": {"type": "array", "items": {"$ref": "#/$defs/reason"}},
+    "freshness": {"type": "object"},
+    "generatedAt": {"type": "string"},
+    "contentHash": {"$ref": "#/$defs/hash"}
+  },
+  "allOf": [{
+    "if": {"properties": {"schemaVersion": {"const": "1.1.0"}}},
+    "then": {
+      "properties": {
+        "coverage": {"required": ["resolvedInternalRelationshipCount", "auditedBoundaryRelationshipCount", "unresolvedInternalRelationshipCount", "legacyUnclassifiedRelationshipCount", "boundaryClassificationComplete"]},
+        "affected": {"required": ["boundaryRelationships", "boundarySummary"]}
+      }
+    }
+  }],
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "path": {
+      "type": "object",
+      "required": ["nodeIds", "types", "length"],
+      "properties": {
+        "nodeIds": {"type": "array", "items": {"$ref": "#/$defs/hash"}, "minItems": 2},
+        "types": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "length": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    },
+    "reason": {
+      "type": "object",
+      "required": ["code", "name", "evidence", "remediation"],
+      "properties": {
+        "code": {"enum": ["U-01", "U-02", "U-03", "U-04", "U-05", "U-06", "U-07", "U-08", "U-09", "U-10", "U-11", "U-12", "U-13", "U-14", "U-15", "U-16", "U-17", "U-18"]},
+        "name": {"type": "string", "minLength": 1},
+        "evidence": {"type": "array", "items": {"type": "string"}},
+        "remediation": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "countRow": {
+      "type": "object",
+      "required": ["key", "count"],
+      "properties": {"key": {"type": "string"}, "count": {"type": "integer", "minimum": 0}},
+      "additionalProperties": false
+    },
+    "boundarySummary": {
+      "type": "object",
+      "required": ["total", "byType", "byClass", "byKind", "traversalStopped"],
+      "properties": {
+        "total": {"type": "integer", "minimum": 0},
+        "byType": {"type": "array", "items": {"$ref": "#/$defs/countRow"}},
+        "byClass": {"type": "array", "items": {"$ref": "#/$defs/countRow"}},
+        "byKind": {"type": "array", "items": {"$ref": "#/$defs/countRow"}},
+        "traversalStopped": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "boundary": {
+      "type": "object",
+      "required": ["boundaryRelationshipId", "rawRelationshipId", "type", "internalSymbolId", "internalRole", "boundaryRole", "boundaryClass", "boundaryKind", "boundaryKey", "boundaryKeyHash", "classificationEvidence", "classificationStatus", "traversalPolicy", "classificationOrigin"],
+      "properties": {
+        "boundaryRelationshipId": {"$ref": "#/$defs/hash"}, "rawRelationshipId": {"$ref": "#/$defs/hash"}, "type": {"type": "string"}, "internalSymbolId": {"$ref": "#/$defs/hash"},
+        "internalRole": {"enum": ["SOURCE", "TARGET"]}, "boundaryRole": {"enum": ["SOURCE", "TARGET"]}, "boundaryClass": {"enum": ["EXTERNAL", "REPOSITORY_NON_ELIGIBLE"]},
+        "boundaryKind": {"enum": ["STANDARD_LIBRARY", "DECLARED_DEPENDENCY", "UNDECLARED_EXTERNAL_MODULE", "NON_ELIGIBLE_FILE", "UNSUPPORTED_FILE"]},
+        "boundaryKey": {"type": "string"}, "boundaryKeyHash": {"$ref": "#/$defs/hash"}, "classificationEvidence": {"type": "array", "minItems": 1, "items": {"type": "object"}},
+        "classificationStatus": {"const": "AUDITED"}, "traversalPolicy": {"const": "STOP_AT_BOUNDARY"}, "classificationOrigin": {"enum": ["LEGACY_RESOLVED", "LEGACY_UNRESOLVED"]}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,25 @@
+{
+  "name": "ENV: server PostgreSQL unreachable -> blocking, remedy is server check, NEVER a local install",
+  "kind": "env-preflight",
+  "simulatedTools": {
+    "java": "openjdk version \"17.0.10\" 2024-01-16",
+    "node": "v22.11.0",
+    "mvn": "Apache Maven 3.9.9",
+    "python": "Python 3.12.9",
+    "py312": true,
+    "git": "git version 2.47.1.windows.2"
+  },
+  "simulatedRemote": {
+    "postgresql": false,
+    "redis": true
+  },
+  "expectedStatus": "not-ready",
+  "expectedBlockingContains": [
+    "deployment-server PostgreSQL not reachable",
+    "do NOT install PostgreSQL locally",
+    "preflight_server_check.py"
+  ],
+  "expectedBlockingNotContains": [
+    "winget install"
+  ]
+}

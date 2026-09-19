@@ -1,0 +1,18 @@
+{
+  "name": "INPUT: links intact but one Must capability incomplete -> partial, needs gap list",
+  "kind": "input-contract",
+  "inputFixture": {
+    "00-项目概述.md": "# 项目概述\n\n| role_id | 角色 | 职责 |\n|---|---|---|\n| ROLE-OP-001 | 操作员 | 创建和关闭任务 |\n\n| scenario_id | 场景名称 | 场景描述 | 发起角色 role_id | 关联流程 process_id |\n|---|---|---|---|---|\n| SC-ORD-001 | 订单转任务 | 操作员把已接收订单转为任务 | ROLE-OP-001 | PROC-ORD-001 |\n\n## 范围\n\n### 本期包含\n\n- 任务创建与关闭\n\n### 本期不包含\n\n- 不做批量导入\n",
+    "01-能力目录.md": "# 能力目录\n\n| capability_id | 能力名称 | 类型 | 优先级 | 来源 node_id | 关联 entity_id |\n|---|---|---|---|---|---|\n| CAP-TASK-CREATE | 创建任务 | 业务能力 | Must | ND-ORD-001-01 | ENT-TASK-001 |\n| CAP-TASK-CLOSE | 关闭任务 | 业务能力 | Must | ND-ORD-001-02 | ENT-TASK-001 |\n\n### CAP-TASK-CREATE 创建任务\n\n- **业务目标**：允许操作员从已接收订单创建作业任务\n- **触发角色**：操作员\n- **输入**：订单编号、任务类型\n- **输出**：任务记录\n\n**正常流程**：\n\n1. 操作员选择订单\n2. 系统校验订单状态为已接收\n3. 系统生成任务编号并落库\n\n**异常流程**：\n\n- 订单状态非「已接收」 → 拒绝创建并提示当前状态\n\n**验收标准**：\n\n```gherkin\nGiven 存在一条状态为已接收的订单\nWhen 操作员点击创建任务\nThen 系统生成任务并记录审计日志\n```\n\n**不包含**：\n\n- 不做批量创建\n\n### CAP-TASK-CLOSE 关闭任务\n\n- **业务目标**：允许操作员关闭已完成的任务\n- **触发角色**：操作员\n- **输入**：任务编号\n- **输出**：任务状态变更\n\n**正常流程**：\n\n1. 操作员选择任务\n2. 系统校验任务处于处理中\n\n**验收标准**：\n\n```gherkin\nGiven 存在一条处理中的任务\nWhen 操作员点击关闭\nThen 任务状态变为已关闭\n```\n",
+    "02-领域模型.md": "# 领域模型\n\n| entity_id | 实体名称 | 定义 | 唯一标识 | 是否有状态 |\n|---|---|---|---|---|\n| ENT-TASK-001 | 任务 | 一次作业执行记录 | task_no | 是 |\n\n### ENT-TASK-001 任务\n\n| 字段 | 类型 | 必填 | 说明 |\n|------|------|------|------|\n| task_no | string | 是 | 任务编号 |\n",
+    "05-流程模型.md": "# 流程模型\n\n| process_id | 流程名称 | 触发条件 |\n|---|---|---|\n| PROC-ORD-001 | 订单转任务 | 订单已接收 |\n\n| node_id | 序号 | 节点名称 | 关联能力 capability_id |\n|---|---|---|---|\n| ND-ORD-001-01 | 1 | 创建任务 | CAP-TASK-CREATE |\n| ND-ORD-001-02 | 2 | 关闭任务 | CAP-TASK-CLOSE |\n"
+  },
+  "expectedVerdict": "partial",
+  "expectNoBrokenRefs": true,
+  "expectedCapabilitySummary": {"total": 2, "must": 2, "mustComplete": 1},
+  "expectedMustGapsContains": [
+    "Must 能力 CAP-TASK-CLOSE 不完整",
+    "异常流程",
+    "不包含范围"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "name": "ENV: Maven 4 installed -> baseline requires Maven 3, blocking",
+  "kind": "env-preflight",
+  "simulatedTools": {
+    "java": "openjdk version \"17.0.10\" 2024-01-16",
+    "node": "v22.11.0",
+    "mvn": "Apache Maven 4.0.1",
+    "python": "Python 3.12.9",
+    "py312": true,
+    "git": "git version 2.47.1.windows.2"
+  },
+  "expectedStatus": "not-ready",
+  "expectedBlockingContains": [
+    "Maven 3 baseline"
+  ]
+}

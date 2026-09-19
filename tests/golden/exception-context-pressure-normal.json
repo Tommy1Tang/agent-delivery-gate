@@ -1,0 +1,11 @@
+{
+  "name": "P8-8: Normal plan with P7 fields present (retryPolicy, tokenBudget, lockedFiles)",
+  "taskSummary": "实现用户认证模块，包含JWT令牌签发、登录接口、密码加密存储",
+  "workflowDomains": ["forward-development"],
+  "expectedWorkflowDomains": ["forward-development"],
+  "expectedRouteContains": ["backend-engineer", "quality-gate-engineer"],
+  "expectedSecuritySensitive": true,
+  "expectedPlanSnapshot": {
+    "securitySensitive": true
+  }
+}

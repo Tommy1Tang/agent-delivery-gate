@@ -1,0 +1,24 @@
+{
+  "name": "PROCESS: halted delivery must not advance, pointer reports SP-HALT",
+  "kind": "next-step",
+  "ledger": {
+    "taskName": "halt regression",
+    "createdAt": "2026-07-29T10:00:00",
+    "deliveryStatus": "halted-pending-user",
+    "roleRuns": [
+      {"roleId": "product-analyst", "status": "completed", "durationMs": 1000},
+      {"roleId": "architect", "status": "blocked", "durationMs": 500, "blockedBy": ["上游需求歧义未消解"]}
+    ],
+    "commands": [
+      {"command": "python scripts/preflight_env_check.py --project-root . --json", "status": "pass", "durationMs": 500}
+    ],
+    "artifacts": [],
+    "qualityGates": [],
+    "observability": {}
+  },
+  "projectFixture": {
+    "docs/需求规格书.md": "# 需求规格书\n\nFR-001\n"
+  },
+  "expectedState": "halted",
+  "expectedCurrentNode": "SP-HALT"
+}

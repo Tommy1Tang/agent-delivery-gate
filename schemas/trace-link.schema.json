@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.qoder/skills/software-development-team/trace-link.schema.json",
+  "title": "Trace Bridge",
+  "type": "object",
+  "required": ["schemaVersion", "traceBridgeId", "manifestHash", "sourceDigest", "requirementsHash", "links", "rejected", "generatedAt", "contentHash"],
+  "properties": {
+    "schemaVersion": {"const": "1.0.0"},
+    "traceBridgeId": {"type": "string", "pattern": "^CTB-[0-9a-f]{24}$"},
+    "manifestHash": {"$ref": "#/$defs/hash"},
+    "sourceDigest": {"$ref": "#/$defs/hash"},
+    "requirementsHash": {"$ref": "#/$defs/hash"},
+    "links": {"type": "array", "items": {"$ref": "#/$defs/link"}},
+    "rejected": {"type": "array", "items": {"$ref": "#/$defs/rejected"}},
+    "generatedAt": {"type": "string"},
+    "contentHash": {"$ref": "#/$defs/hash"}
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "location": {
+      "type": "object",
+      "required": ["relativePath", "line"],
+      "properties": {"relativePath": {"type": "string", "minLength": 1}, "line": {"type": "integer", "minimum": 1}},
+      "additionalProperties": false
+    },
+    "symbol": {
+      "type": "object",
+      "required": ["repositoryId", "relativePath", "qualifiedName", "symbolKind", "startLine", "endLine", "manifestHash", "symbolId"],
+      "properties": {
+        "repositoryId": {"type": "string"}, "relativePath": {"type": "string"}, "qualifiedName": {"type": "string"},
+        "symbolKind": {"type": "string"}, "startLine": {"type": "integer", "minimum": 1}, "endLine": {"type": "integer", "minimum": 1},
+        "manifestHash": {"$ref": "#/$defs/hash"}, "symbolId": {"$ref": "#/$defs/hash"}
+      },
+      "additionalProperties": false
+    },
+    "link": {
+      "type": "object",
+      "required": ["traceLinkId", "declaration", "symbolRef", "requirementIds", "role", "testId", "status", "reasonCode", "manifestHash", "sourceDigest", "requirementsHash"],
+      "properties": {
+        "traceLinkId": {"$ref": "#/$defs/hash"},
+        "declaration": {"$ref": "#/$defs/location"},
+        "symbolRef": {"$ref": "#/$defs/symbol"},
+        "requirementIds": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": true},
+        "role": {"enum": ["implementation", "test"]},
+        "testId": {"type": ["string", "null"], "pattern": "^TEST-[A-Z0-9]+(?:-[A-Z0-9]+)*$"},
+        "status": {"const": "exact"},
+        "reasonCode": {"type": ["string", "null"]},
+        "manifestHash": {"$ref": "#/$defs/hash"},
+        "sourceDigest": {"$ref": "#/$defs/hash"},
+        "requirementsHash": {"$ref": "#/$defs/hash"}
+      },
+      "additionalProperties": false
+    },
+    "rejected": {
+      "type": "object",
+      "required": ["declaration", "requirementIds", "testId", "status", "reasonCode"],
+      "properties": {
+        "declaration": {"$ref": "#/$defs/location"},
+        "requirementIds": {"type": "array", "items": {"type": "string"}},
+        "testId": {"type": ["string", "null"]},
+        "status": {"const": "rejected"},
+        "reasonCode": {"type": "string", "minLength": 1},
+        "candidates": {"type": "array", "items": {"$ref": "#/$defs/symbol"}}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

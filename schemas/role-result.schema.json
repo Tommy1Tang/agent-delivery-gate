@@ -1,0 +1,299 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.qoder/skills/software-development-team/role-result.schema.json",
+  "title": "Role Result",
+  "type": "object",
+  "required": [
+    "roleId",
+    "status",
+    "durationMs",
+    "filesRead",
+    "filesCreatedOrUpdated",
+    "keyFindings",
+    "validation",
+    "risks",
+    "blockers"
+  ],
+  "properties": {
+    "roleId": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "blocked",
+        "needs-info",
+        "failed",
+        "skipped",
+        "lost-session",
+        "timed-out",
+        "cancelled"
+      ]
+    },
+    "errorType": {
+      "type": "string",
+      "enum": ["timeout", "session-lost", "needs-info", "transient", "blocked", "failed", "security-block", "cancelled"],
+      "description": "Classified error type for retry decision. timeout/session-lost/transient are retryable; blocked/security-block/cancelled escalate immediately; failed is retryable once then escalate."
+    },
+    "cancellationOrigin": {
+      "type": "string",
+      "enum": ["user"],
+      "description": "REQUIRED when status='cancelled'. Cancellation MUST originate from a user message (see references/halt-and-resume-policy.md Rule 5). Orchestrator self-cancellation is FORBIDDEN; runtime errors must use lost-session/timed-out instead."
+    },
+    "userMessageRef": {
+      "type": "string",
+      "description": "REQUIRED when status='cancelled'. Conversation turn id or quoted user phrase that triggered cancellation."
+    },
+    "durationMs": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Role execution wall-clock time in milliseconds"
+    },
+    "retryCount": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0,
+      "description": "Number of retries for this role"
+    },
+    "securityBlocks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Security issues that blocked this role"
+    },
+    "filesRead": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "filesCreatedOrUpdated": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "keyFindings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "validation": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "status"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pass",
+              "fail",
+              "blocked",
+              "not-run"
+            ]
+          },
+          "evidence": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "downstreamHandoff": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "cascadeBlock": {
+      "type": "object",
+      "description": "When this role is blocked, which downstream roles are cascaded",
+      "properties": {
+        "blockedRoleId": {
+          "type": "string",
+          "description": "The role ID that caused the cascade block"
+        },
+        "cascadedRoleIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Downstream roles that should be blocked as a result"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why the cascade occurred"
+        }
+      }
+    },
+    "checkpointArtifacts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Snapshot paths of key artifacts at this checkpoint for potential rollback"
+    },
+    "partialRetry": {
+      "type": ["object", "null"],
+      "default": null,
+      "description": "P6-10: Partial failure micro-retry record. Non-null when a role partially failed and was retried for specific outputs only.",
+      "properties": {
+        "failedOutputs": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Subset of expectedOutputs that failed on first attempt"
+        },
+        "retryScope": {
+          "type": "string",
+          "enum": ["partial", "full"],
+          "description": "Whether retry was scoped to failed outputs only (partial) or full re-execution (full)"
+        },
+        "retryAttempt": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Which retry attempt this partial retry represents"
+        },
+        "recoveredOutputs": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Outputs successfully recovered after partial retry"
+        },
+        "stillFailing": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Outputs that still failed after retry (escalation needed)"
+        }
+      }
+    },
+    "tokenUsage": {
+      "type": ["object", "null"],
+      "default": null,
+      "description": "P6-13: Actual token consumption for this role execution.",
+      "properties": {
+        "budget": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Token budget allocated to this role (from ROLE_TOKEN_BUDGETS)"
+        },
+        "consumed": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Actual tokens consumed during execution"
+        },
+        "utilizationPct": {
+          "type": "number",
+          "minimum": 0,
+          "description": "consumed / budget * 100"
+        },
+        "overBudget": {
+          "type": "boolean",
+          "description": "True if consumed > budget"
+        }
+      }
+    },
+    "reverseSyncTasks": {
+      "type": "array",
+      "default": [],
+      "description": "Reverse-sync tasks executed by this role. Used by product-analyst, documentation-writer, quality-gate-engineer, supervisor-auditor when closing PRD-vs-code drift. See references/reverse-sync-workflow.md.",
+      "items": {
+        "type": "object",
+        "required": ["taskId", "closureStatus"],
+        "properties": {
+          "taskId": {"type": "string"},
+          "driftType": {"type": "string", "enum": ["api", "schema", "ui-flow", "config", "behavior"]},
+          "driftSource": {"type": "string"},
+          "originFRId": {"type": "string"},
+          "closurePath": {"type": "string", "enum": ["path-a-amend", "path-b-new-fr", "path-c-internal"]},
+          "prdSectionsUpdated": {"type": "array", "items": {"type": "string"}},
+          "closureStatus": {"type": "string", "enum": ["open", "in-progress", "closed", "rejected"]},
+          "closedAt": {"type": "string"},
+          "prdDriftClosed": {"type": "boolean", "description": "True only after all three drift checks (contract / requirement / trace) return pass"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "elicitationRounds": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0,
+      "description": "product-analyst only. Number of Progressive Elicitation rounds performed. 0 when the upstream input contract mode short-circuited elicitation."
+    },
+    "inferredItems": {
+      "type": "array",
+      "items": {"type": "string"},
+      "default": [],
+      "description": "product-analyst only. IDs of items filled by inference rather than confirmed input. Each MUST be labelled 「推断项」/「AI 推断」 in the PRD."
+    },
+    "inputGate": {
+      "type": ["object", "null"],
+      "default": null,
+      "description": "Upstream input contract gate result (references/prd-input-contract.md). REQUIRED for product-analyst when docs/input/ exists. MUST be produced by running scripts/validate_input_contract.py, not by eyeballing the files.",
+      "required": ["verdict", "command"],
+      "properties": {
+        "verdict": {
+          "type": "string",
+          "enum": ["pass", "partial", "fail", "not-applicable"],
+          "description": "pass = skip elicitation and produce full PRD; partial = gap list first, draft PRD for complete capabilities only; fail = do NOT produce PRD, return blocked"
+        },
+        "command": {
+          "type": "string",
+          "description": "Exact command executed, e.g. 'python scripts/validate_input_contract.py --project-root . --json'"
+        },
+        "exitCode": {
+          "type": "integer",
+          "description": "0 = pass/not-applicable, 1 = partial, 2 = fail"
+        },
+        "blocking": {
+          "type": "array",
+          "items": {"type": "string"},
+          "default": [],
+          "description": "Blocking issues reported by the script (missing required files, broken traceability links)"
+        },
+        "mustGaps": {
+          "type": "array",
+          "items": {"type": "string"},
+          "default": [],
+          "description": "Must-level gaps reported by the script"
+        },
+        "brokenRefs": {
+          "type": "array",
+          "items": {"type": "string"},
+          "default": [],
+          "description": "IDs cited but never defined in their owning file, with file:line locations"
+        },
+        "gapListPath": {
+          "type": "string",
+          "description": "Path to the generated gap list, normally docs/输入缺口清单.md. REQUIRED when verdict is partial or fail."
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

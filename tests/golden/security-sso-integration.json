@@ -1,0 +1,35 @@
+{
+  "name": "security-sensitive auth system with SSO",
+  "taskSummary": "实现企业 SSO 单点登录集成，包括 SAML 2.0 / OAuth2 协议支持、会话管理加固、JWT Token 加密存储和权限矩阵重构。",
+  "workflowDomains": [
+    "security-governance"
+  ],
+  "expectedWorkflowDomains": [
+    "security-governance"
+  ],
+  "expectedRouteContains": [
+    "product-analyst",
+    "architect",
+    "data-contract-designer",
+    "backend-engineer",
+    "frontend-engineer",
+    "quality-gate-engineer",
+    "browser-e2e-engineer",
+    "supervisor-auditor"
+  ],
+  "expectedRequiredDocuments": [
+    "docs/01-需求规格书.md",
+    "docs/04-详细设计说明书.md",
+    "docs/07-接口数据契约.md",
+    "docs/16-E2E测试用例.md",
+    "docs/17-E2E测试报告.md",
+    "docs/19-监督审计.md"
+  ],
+  "expectedUiAffected": false,
+  "expectedSecuritySensitive": true,
+  "expectedPlanSnapshot": {
+    "stackDetection": {
+      "deterministic": true
+    }
+  }
+}

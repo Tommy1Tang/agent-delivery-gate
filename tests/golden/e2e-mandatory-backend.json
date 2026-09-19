@@ -1,0 +1,32 @@
+{
+  "name": "e2e mandatory: backend-only / CLI / API delivery must still go through browser-e2e-engineer (api-mode E2E)",
+  "taskSummary": "构建一个批处理 CLI 工具与 REST API，仅含后端服务与命令行入口。",
+  "workflowDomains": [
+    "forward-development"
+  ],
+  "expectedWorkflowDomains": [
+    "forward-development"
+  ],
+  "expectedRouteContains": [
+    "product-analyst",
+    "architect",
+    "backend-engineer",
+    "quality-gate-engineer",
+    "browser-e2e-engineer",
+    "devops-release-engineer",
+    "supervisor-auditor"
+  ],
+  "expectedRequiredDocuments": [
+    "docs/01-需求规格书.md",
+    "docs/04-详细设计说明书.md",
+    "docs/07-接口数据契约.md",
+    "docs/11-单元测试报告.md",
+    "docs/13-集成测试报告.md",
+    "docs/16-E2E测试用例.md",
+    "docs/17-E2E测试报告.md",
+    "docs/18-部署说明.md",
+    "docs/19-监督审计.md"
+  ],
+  "expectedUiAffected": false,
+  "expectedSecuritySensitive": false
+}

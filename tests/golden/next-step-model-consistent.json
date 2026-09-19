@@ -1,0 +1,9 @@
+{
+  "name": "PROCESS: model is self-consistent (roles/prompts/transitions/reachability)",
+  "kind": "next-step",
+  "assertModelConsistent": true,
+  "expectedCheckWarningsNotContains": [
+    "人类编辑孪生缺失",
+    "未出现在任何 phase"
+  ]
+}

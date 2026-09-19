@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "failure-pattern.schema.json",
+  "title": "FailurePattern",
+  "description": "M2: Recurring failure patterns auto-distilled from blocking events. Used as preventive context for future deliveries.",
+  "type": "object",
+  "required": ["schemaVersion", "patterns"],
+  "properties": {
+    "schemaVersion": {"type": "integer", "const": 1},
+    "patterns": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "signature", "category", "summary", "occurrences", "lastSeenAt"],
+        "properties": {
+          "id": {"type": "string", "description": "Stable id (e.g., FP-001)."},
+          "signature": {
+            "type": "string",
+            "description": "Normalized fingerprint for matching (e.g., 'jwt-missing-field|spring-security')."
+          },
+          "category": {
+            "type": "string",
+            "enum": ["env", "contract-drift", "auth", "schema", "build", "test", "e2e", "integration", "config", "dependency", "other"]
+          },
+          "summary": {"type": "string", "description": "One-line description of the failure."},
+          "rootCause": {"type": "string"},
+          "fixHint": {"type": "string", "description": "Recommended fix or prevention strategy."},
+          "triggerConditions": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Stack/role/operation conditions under which this pattern is likely to recur."
+          },
+          "stackSignatures": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Stack signatures where this was observed."
+          },
+          "occurrences": {"type": "integer", "minimum": 1},
+          "firstSeenAt": {"type": "string"},
+          "lastSeenAt": {"type": "string"},
+          "evidenceLinks": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "References to evidence-ledger entries or doc paths."
+          }
+        }
+      }
+    }
+  }
+}

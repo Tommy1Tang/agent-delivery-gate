@@ -1,0 +1,15 @@
+{
+  "name": "ENV: brand-new OS with no toolchain at all -> every baseline tool blocking, no local DB advice",
+  "kind": "env-preflight",
+  "simulatedTools": {},
+  "simulatedRemote": {"postgresql": true, "redis": true},
+  "expectedStatus": "not-ready",
+  "expectedBlockingContains": [
+    "git not found in PATH",
+    "java not found in PATH",
+    "node not found in PATH",
+    "mvn not found in PATH",
+    "python/python3 not found in PATH"
+  ],
+  "expectedBlockingNotContains": ["Oracle.PostgreSQL", "postgres:16", "redis:7"]
+}

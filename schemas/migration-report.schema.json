@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.qoder/skills/software-development-team/migration-report.schema.json",
+  "title": "Skill Compatibility Report",
+  "type": "object",
+  "required": [
+    "currentVersion",
+    "supportedVersions",
+    "status",
+    "findings"
+  ],
+  "properties": {
+    "currentVersion": {
+      "type": "integer"
+    },
+    "supportedVersions": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "compatible",
+        "migration-needed",
+        "unsupported"
+      ]
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "recommendedActions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    }
+  },
+  "additionalProperties": false
+}

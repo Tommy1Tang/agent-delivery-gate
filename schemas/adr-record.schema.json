@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "adr-record.schema.json",
+  "title": "ADRRecord",
+  "description": "M3: Architecture Decision Record. Append-only log; one record per architectural decision.",
+  "type": "object",
+  "required": ["id", "title", "status", "context", "decision", "consequences", "createdAt"],
+  "properties": {
+    "id": {"type": "string", "description": "ADR-NNNN sequential id."},
+    "title": {"type": "string"},
+    "status": {
+      "type": "string",
+      "enum": ["proposed", "accepted", "deprecated", "superseded"]
+    },
+    "context": {"type": "string", "description": "Problem and forces leading to this decision."},
+    "decision": {"type": "string", "description": "What was decided."},
+    "consequences": {
+      "type": "object",
+      "properties": {
+        "positive": {"type": "array", "items": {"type": "string"}},
+        "negative": {"type": "array", "items": {"type": "string"}},
+        "risks": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "alternatives": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {"type": "string"},
+          "rejectedReason": {"type": "string"}
+        }
+      }
+    },
+    "supersededBy": {"type": ["string", "null"], "default": null},
+    "deliveryId": {"type": "string"},
+    "createdAt": {"type": "string"},
+    "tags": {"type": "array", "items": {"type": "string"}}
+  }
+}

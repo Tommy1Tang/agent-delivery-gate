@@ -1,0 +1,7 @@
+{
+  "name": "P8-8: Preflight reject — task summary missing action verb",
+  "taskSummary": "关于工单系统的一些想法和讨论，我觉得可以考虑很多方面",
+  "workflowDomains": [],
+  "expectedStatus": "needs-clarification",
+  "expectedPlanContainsKeys": ["status", "questions"]
+}

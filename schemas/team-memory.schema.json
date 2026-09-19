@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "team-memory.schema.json",
+  "title": "TeamMemory",
+  "description": "M1: Project-level preferences and conventions accumulated across deliveries.",
+  "type": "object",
+  "required": ["schemaVersion", "projectKey", "preferences", "conventions", "updatedAt"],
+  "properties": {
+    "schemaVersion": {"type": "integer", "const": 1},
+    "projectKey": {
+      "type": "string",
+      "description": "Stable hash/name identifying the project (e.g., absolute path hash)."
+    },
+    "stackSignature": {
+      "type": "string",
+      "description": "Hash of selectedAdapters for stack-level matching."
+    },
+    "preferences": {
+      "type": "object",
+      "description": "User-explicit preferences (overrides defaults). Keys are stable identifiers.",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["value", "scope", "updatedAt"],
+        "properties": {
+          "value": {},
+          "scope": {"type": "string", "enum": ["global", "stack", "project", "delivery"]},
+          "source": {"type": "string", "description": "Where the preference originated (user/inferred/default)."},
+          "rationale": {"type": "string"},
+          "updatedAt": {"type": "string"}
+        }
+      }
+    },
+    "conventions": {
+      "type": "array",
+      "description": "Stable codebase conventions (naming, comment language, test density, commit format).",
+      "items": {
+        "type": "object",
+        "required": ["id", "category", "rule"],
+        "properties": {
+          "id": {"type": "string"},
+          "category": {"type": "string", "enum": ["naming", "comment", "testing", "commit", "structure", "security", "other"]},
+          "rule": {"type": "string"},
+          "examples": {"type": "array", "items": {"type": "string"}},
+          "addedAt": {"type": "string"}
+        }
+      }
+    },
+    "deliveryHistory": {
+      "type": "array",
+      "description": "Recent delivery summaries for context (last N entries).",
+      "items": {
+        "type": "object",
+        "properties": {
+          "deliveryId": {"type": "string"},
+          "taskSummary": {"type": "string"},
+          "completedAt": {"type": "string"},
+          "outcome": {"type": "string", "enum": ["success", "partial", "failed"]}
+        }
+      },
+      "maxItems": 20
+    },
+    "updatedAt": {"type": "string"}
+  }
+}

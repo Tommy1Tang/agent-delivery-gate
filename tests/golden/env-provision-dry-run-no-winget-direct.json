@@ -1,0 +1,20 @@
+{
+  "name": "ENV: no winget (LTSC/Server) -> direct official-download mode, all five planned, no postgresql/redis ever",
+  "kind": "env-provision-dry-run",
+  "simulatedTools": {},
+  "expectedToolStatus": {
+    "git": "would-install",
+    "java": "would-install",
+    "node": "would-install",
+    "maven": "would-install",
+    "python": "would-install"
+  },
+  "expectedPlannedCommandsContain": {
+    "git": ["direct-download", "git-for-windows"],
+    "java": ["direct-download", "aka.ms/download-jdk"],
+    "node": ["direct-download", "nodejs.org/dist/v22"],
+    "maven": ["direct-download", "archive.apache.org/dist/maven/maven-3"],
+    "python": ["direct-download", "python.org/ftp/python/3.12"]
+  },
+  "assertNoLocalDbCommands": true
+}
