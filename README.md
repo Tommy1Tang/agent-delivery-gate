@@ -87,6 +87,91 @@ Register the directory as a skill in your agent runtime and invoke it with a req
 
 ---
 
+## Three capabilities that make it work
+
+### 1 · Automatic code graph
+
+Before any change, the skill builds a **symbol-and-relationship graph** of your repository and keeps it as a normalised, hash-addressed snapshot. That graph is what answers "what does this code actually do" without an LLM guessing.
+
+```bash
+# Build the graph (offline, deterministic, content-hashed)
+python scripts/build_code_index.py \
+  --project-root /path/to/your-project \
+  --output-dir .qoder/code-index \
+  --config assets/config/code-intelligence.json --json
+```
+
+Then query it in **plain Chinese or English** — seven deterministic intents, no model in the loop:
+
+| Intent | You ask |
+|---|---|
+| `definition` | `X 在哪里定义？` / `where is X defined?` |
+| `callers` | `谁调用 X？` / `who calls X?` |
+| `callees` | `X 调用了谁？` / `what does X call?` |
+| `references` | `谁引用 X？` |
+| `contains` | `模块 X 包含什么？` |
+| `implements_requirement` | `FR-003 由什么实现？` |
+| `tests_for` | `哪些测试覆盖 X？` |
+
+Real output, reproduced by the runnable [`demo_code_graph.py`](demo_code_graph.py):
+
+```console
+$ python demo_code_graph.py
+fixture graph: 2 symbols, 1 relationships
+
+$ query_code_graph.py --intent definition --target app.worker
+{ "queryStatus": "ANSWERED", ... "definition returned 1 exact symbol(s)" }
+
+$ query_code_graph.py --intent callers --target app.worker
+{ "queryStatus": "ANSWERED", ... "callers returned 1 exact symbol(s)" }
+
+$ query_code_graph.py --intent implements_requirement --target FR-001
+{ "queryStatus": "ANSWERED", ... "implements_requirement returned 1 exact symbol(s)" }
+
+$ query_code_graph.py --intent tests_for --target app.worker
+{ "queryStatus": "ANSWERED", ... "tests_for returned 1 exact symbol(s)" }
+```
+
+An ambiguous symbol returns **candidates**, not a coin flip. A stale snapshot or incomplete coverage returns `UNKNOWN`, not a plausible answer.
+
+### 2 · Automatic verification
+
+Every claim the delivery makes is checked by a script, not by the model. The graph produces two hard facts:
+
+**Blast radius, before you touch anything:**
+
+```bash
+python scripts/analyze_code_impact.py \
+  --snapshot .qoder/code-index/code-index-snapshot.json \
+  --trace-bridge .qoder/code-index/code-trace-bridge.json \
+  --requirement FR-003 --artifact-root . --json
+```
+
+It answers exactly one of `FOUND` / `NO_IMPACT` / `UNKNOWN`. `NO_IMPACT` is only permitted when the seed is unique, the snapshot is fresh, coverage is complete, and traversal was not truncated — otherwise you get `UNKNOWN`, which **blocks**.
+
+**Scope reconciliation, after:**
+
+```bash
+python scripts/reconcile_code_changes.py ...   # actual vs approved changeSet
+```
+
+Did the change stay inside the approved files, symbols and relations? Any undeclared file, symbol or relation regression fails the reconciliation. Then the seven gates (`C-CODE-01..07`) and `validate_delivery.py` issue the final verdict.
+
+### 3 · Automatic testing
+
+Tests are not optional here — they are a **gate input**. The pipeline writes test cases and reports as first-class deliverables, and `validate_delivery.py` enforces hard thresholds before a delivery may pass:
+
+| Threshold | Requirement |
+|---|---|
+| Unit coverage | ≥ 90% |
+| Integration coverage | ≥ 80% |
+| Test pass rate | 100% |
+| E2E pass rate | 100%, with P0 acceptance criteria covered |
+
+Test IDs are stable and unique repo-wide, and the graph links each requirement to the test that covers it (`--intent tests_for`) — so "it's tested" is a query result, not a claim. The example delivery in [`docs/`](docs/) shows the full set: unit cases and report, integration cases and report, E2E cases and report.
+
+---
+
 ## What lands in your project
 
 The pipeline writes real deliverables, not a summary. [`docs/`](docs/) in this repo contains a **complete example delivery** produced this way for *MES Lite*, a generic discrete-manufacturing execution system — requirements, design, API contract, UI spec, test cases and reports, code and security review, deployment, observability, and an independent audit.
@@ -138,7 +223,7 @@ Delivery graph ─────┘                        │
 
 A gate returns `PASS`, `BLOCK`, `UNKNOWN`, or `NOT_APPLICABLE`. **`UNKNOWN` is not a soft pass** — it blocks, with a reason code and remediation hint. There is deliberately no path where "the agent was confident" becomes `PASS`.
 
-Supporting capabilities: natural-language code queries (`scripts/query_code_graph.py`), pre-change blast radius (`scripts/analyze_code_impact.py`), post-change reconciliation (`scripts/reconcile_code_changes.py`), and an append-only evidence ledger (`scripts/write_evidence_ledger.py`).
+Every role run, command, artifact and gate verdict is appended to an **append-only evidence ledger** (`scripts/write_evidence_ledger.py`), which is what makes the delivery auditable after the fact.
 
 ---
 
@@ -155,6 +240,7 @@ assets/
 references/     43 governance and workflow documents
 docs/           a complete example delivery for a generic MES (19 documents)
 tests/          83 tests covering gate logic, determinism and policy
+demo_code_graph.py   runnable demo of the code-graph queries shown above
 ```
 
 ---
