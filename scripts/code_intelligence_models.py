@@ -97,16 +97,12 @@ def normalize_relative_path(value: str | os.PathLike[str]) -> str:
 
 def ensure_contained(root: Path, candidate: Path, *, allow_root: bool = False) -> Path:
     resolved_root = root.resolve(strict=True)
-    lexical_candidate = candidate.absolute()
-    try:
-        lexical_relative = lexical_candidate.relative_to(resolved_root)
-    except ValueError as exc:
-        raise ValueError("path is outside the allowed root") from exc
-    lexical_current = resolved_root
-    for part in lexical_relative.parts:
-        lexical_current = lexical_current / part
-        if lexical_current.exists() and lexical_current.is_symlink():
-            raise ValueError("symlinked artifact path is forbidden")
+    # Compare canonical forms on both sides. Using candidate.absolute() here is
+    # not portable: on Windows the temp directory can be handed to us as an 8.3
+    # short name (C:\Users\RUNNER~1\...) while resolve() expands it to the long
+    # form, so a path that genuinely sits under the root is rejected as an
+    # escape. resolve(strict=False) normalises both short names and symlinks,
+    # which is exactly the comparison we want before writing anything.
     resolved_candidate = candidate.resolve(strict=False)
     try:
         relative = resolved_candidate.relative_to(resolved_root)
@@ -114,6 +110,13 @@ def ensure_contained(root: Path, candidate: Path, *, allow_root: bool = False) -
         raise ValueError("path is outside the allowed root") from exc
     if not allow_root and not relative.parts:
         raise ValueError("the allowed root itself cannot be used as an artifact target")
+    # Defence in depth: no component of the path may itself be a symlink, so an
+    # artifact cannot be written through a link that later retargets.
+    current = resolved_root
+    for part in relative.parts:
+        current = current / part
+        if current.exists() and current.is_symlink():
+            raise ValueError("symlinked artifact path is forbidden")
     return resolved_candidate
 
 
