@@ -34,6 +34,10 @@ jobs:
 
       # No pip install step on purpose: the suite runs on the standard library
       # alone. If this ever needs a dependency, that is a regression worth seeing.
+      - name: Path-resolution diagnostics
+        if: always()
+        run: python scripts/diagnose_paths.py
+
       - name: Run test suite
         run: python run_tests.py
 
