@@ -54,6 +54,10 @@ cd agent-delivery-gate
 python run_tests.py
 ```
 
+> **Windows note:** delivery documents have Chinese file names, so set UTF-8 before running
+> the CLIs — `$env:PYTHONIOENCODING="utf-8"; $env:PYTHONUTF8="1"` (or pass `-X utf8`), otherwise
+> a non-UTF-8 console code page makes the report printer raise `UnicodeEncodeError`.
+
 Expected:
 
 ```text

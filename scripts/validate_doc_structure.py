@@ -135,7 +135,25 @@ def validate_doc_structure(skill_root: Path, project_root: Path) -> dict:
     }
 
 
+def _force_utf8_output() -> None:
+    """Make stdout/stderr UTF-8 regardless of the platform default.
+
+    Delivery documents have Chinese file names, so on a Windows console whose
+    active code page is not UTF-8 (cp1252, cp936, ...) printing a report raises
+    UnicodeEncodeError and the validator exits non-zero even though the
+    validation itself passed.
+    """
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            try:
+                reconfigure(encoding="utf-8", errors="replace")
+            except (ValueError, OSError):  # pragma: no cover - stream not reconfigurable
+                pass
+
+
 def main() -> int:
+    _force_utf8_output()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--skill-root", required=True, help="Path to the skill root")
     parser.add_argument("--project-root", default=".", help="Path to the project root")

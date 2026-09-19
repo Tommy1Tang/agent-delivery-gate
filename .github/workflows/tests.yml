@@ -10,6 +10,14 @@ on:
 permissions:
   contents: read
 
+# Delivery documents have Chinese file names. A Windows runner's default code
+# page is not UTF-8, so scripts that print those names die with
+# UnicodeEncodeError and the job fails even though the check passed. Set UTF-8
+# for every step here rather than patching each script.
+env:
+  PYTHONIOENCODING: utf-8
+  PYTHONUTF8: "1"
+
 jobs:
   test:
     name: python ${{ matrix.python-version }} on ${{ matrix.os }}
