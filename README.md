@@ -1,5 +1,7 @@
 # agent-delivery-gate
 
+**Language:** **English** · [简体中文](README.zh-CN.md)
+
 > **A vibe-coding skill that ships.** Describe what you want in plain language — a team of 15 agent roles takes it from requirement to tested, reviewed, documented, deployable delivery. Deterministic gates decide when it is actually *done*.
 
 [![tests](https://github.com/Tommy1Tang/agent-delivery-gate/actions/workflows/tests.yml/badge.svg)](https://github.com/Tommy1Tang/agent-delivery-gate/actions/workflows/tests.yml)
