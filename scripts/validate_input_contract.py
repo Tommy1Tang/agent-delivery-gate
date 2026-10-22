@@ -26,8 +26,9 @@ import hashlib
 import json
 import re
 import sys
-import xml.etree.ElementTree as ET
 from pathlib import Path
+
+from baseline_ids import bpmn_flow_node_ids, owl_resource_ids
 
 # --------------------------------------------------------------------------
 # Contract constants
@@ -65,8 +66,15 @@ OPTIONAL_OWNERS = {"06", "07"}
 # (RULE / ROLE / REL all differ at the 2nd character). That makes matching
 # order-independent and immune to the classic `R-` vs `ROLE-` collision, and it
 # also means internal PRD numbering (FR-/BR-/NFR-/AC-) can never be captured.
+#
+# The leading `(?<![A-Za-z0-9-])` is load-bearing: `\b` alone would match the
+# tail of a hyphenated field id such as `FLD-REL-ID`, reporting a phantom
+# `REL-ID` reference and a phantom broken chain. The trailing pattern already
+# refuses to match when a hyphen follows, so `RULE-APPROVAL-001` cannot be
+# mistaken for a bare `RULE-APPROVAL` id.
 ID_PATTERN = re.compile(
-    r"\b(CAP|ENT|EV|EX|IF|ND|PROC|REL|ROLE|RULE|SC|ST|Q)-([A-Za-z0-9]+(?:-[A-Za-z0-9]+)*)"
+    r"(?<![A-Za-z0-9-])(CAP|ENT|EV|EX|IF|ND|PROC|REL|ROLE|RULE|SC|ST|Q)-"
+    r"([A-Za-z0-9]+(?:-[A-Za-z0-9]+)*)"
 )
 
 # Guard: assert at import time that the prefix set stays prefix-free, so a future
@@ -188,18 +196,14 @@ MODELS_DIR = "models"
 MANIFEST_REL = "models/baseline-manifest.json"
 SPEC_REL = "models/spec/model-spec.json"
 
-# BPMN flow elements whose ids should mirror 05 的 ND-* nodes.
-_BPMN_NODE_TAGS = {
-    "task", "userTask", "serviceTask", "scriptTask", "manualTask",
-    "businessRuleTask", "sendTask", "receiveTask", "callActivity",
-    "subProcess", "exclusiveGateway", "inclusiveGateway", "parallelGateway",
-    "eventBasedGateway", "complexGateway",
+# model-spec.json is authored upstream in two naming styles: the gate's own
+# fixtures use `id`, while research-to-project-input uses `<kind>_id`. Both
+# identify the same object, so C-INPUT-04 accepts either.
+SPEC_ID_KEY = {
+    "capabilities": "capability_id",
+    "processes": "process_id",
+    "entities": "entity_id",
 }
-
-
-def _localname(tag: str) -> str:
-    return tag.rsplit("}", 1)[-1] if "}" in tag else tag
-
 
 def _sha256(path: Path) -> str:
     h = hashlib.sha256()
@@ -210,37 +214,13 @@ def _sha256(path: Path) -> str:
 
 
 def _bpmn_node_ids(path: Path) -> set[str]:
-    """Collect ids of BPMN flow nodes. Set comparison only -- no semantics."""
-    ids: set[str] = set()
-    try:
-        root = ET.parse(path).getroot()
-    except (ET.ParseError, OSError):
-        return ids
-    for el in root.iter():
-        if _localname(el.tag) in _BPMN_NODE_TAGS:
-            nid = el.get("id")
-            if nid:
-                ids.add(nid)
-    return ids
+    """Collect ids of BPMN flow nodes (tasks, gateways, events)."""
+    return bpmn_flow_node_ids(path)
 
 
 def _owl_class_ids(path: Path) -> set[str]:
-    """Collect OWL class local names from rdf:about / rdf:ID."""
-    ids: set[str] = set()
-    try:
-        root = ET.parse(path).getroot()
-    except (ET.ParseError, OSError):
-        return ids
-    rdf_ns = "{http://www.w3.org/1999/02/22-rdf-syntax-ns#}"
-    for el in root.iter():
-        if _localname(el.tag) not in ("Class", "NamedIndividual"):
-            continue
-        for attr in (f"{rdf_ns}about", f"{rdf_ns}ID", "about", "ID"):
-            val = el.get(attr)
-            if val:
-                ids.add(val.split("#")[-1].rstrip("/").rsplit("/", 1)[-1])
-                break
-    return ids
+    """Collect OWL IRI local names plus trace stable IDs."""
+    return owl_resource_ids(path)
 
 
 def _check_baseline(input_dir: Path, defs: dict[str, set[str]],
@@ -352,8 +332,9 @@ def _check_baseline(input_dir: Path, defs: dict[str, set[str]],
                 raw_items = spec.get(spec_key)
                 if raw_items is None:
                     continue
+                id_key = SPEC_ID_KEY[spec_key]
                 spec_ids = {
-                    (it.get("id") if isinstance(it, dict) else it)
+                    ((it.get("id") or it.get(id_key)) if isinstance(it, dict) else it)
                     for it in raw_items
                 }
                 spec_ids = {s for s in spec_ids if isinstance(s, str)}
@@ -466,13 +447,37 @@ def _bullet_field(body: str, label: str) -> str | None:
 
 
 def _block_after(body: str, marker: str) -> str:
-    """Text between **marker** and the next **bold** marker / heading."""
+    """Text between **marker** and the next **bold** marker / heading.
+
+    A fenced block is treated as transparent rather than as a terminator: both
+    `assets/templates/project-input/01-能力目录.template.md` and this skill's own
+    example artifacts legitimately write a nested code fence to label the
+    body that follows (``**验收标准**：`` + ```` ```gherkin ````). Stopping at the
+    fence, as this used to, made the checker reject the very format its own
+    template prescribes. Opening and closing fence lines are dropped so the
+    contents can be parsed directly.
+    """
     m = re.search(rf"\*\*{re.escape(marker)}\*\*\s*[：:]?", body)
     if not m:
         return ""
     rest = body[m.end():]
-    stop = re.search(r"^\s*(?:\*\*[^*]+\*\*|#{2,6}\s|---\s*$)", rest, re.M)
-    return rest[:stop.start()] if stop else rest
+    kept: list[str] = []
+    fence: str | None = None
+    for line in rest.splitlines():
+        stripped = line.strip()
+        if fence is not None:
+            if stripped.startswith(fence):
+                fence = None
+            else:
+                kept.append(line)
+            continue
+        if stripped.startswith("```"):
+            fence = stripped[:3]
+            continue
+        if re.match(r"^\s*(?:\*\*[^*]+\*\*|#{2,6}\s|---\s*$)", line):
+            break
+        kept.append(line)
+    return "\n".join(kept)
 
 
 def _filled_list_items(block: str, numbered: bool) -> int:

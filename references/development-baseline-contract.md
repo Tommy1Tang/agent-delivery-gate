@@ -150,6 +150,9 @@ model-spec.json  （业务模型唯一规范源）
 7. PRD、任务、代码、测试必须保留 `capability_id` / `process_id` / `node_id` /
    `entity_id` / `rule_id` 等稳定 ID。
 
+中文 IRI 的 OWL 以 `trace:稳定标识` 注解中的 ASCII ID 作为技术标识；代码、
+数据表、API 回链时使用该稳定 ID，不要把中文 IRI 本地名当作实体 ID。
+
 ---
 
 ## 6. 切片输入规则（不交给 AI 判断）
@@ -176,9 +179,17 @@ rule_id`），纯集合运算，无启发式判断（LAW-3）。
 | 约束 | 校验内容 | 违反后果 |
 |------|---------|---------|
 | **C-INPUT-01** | manifest 中每个文件的 sha256 与实际内容一致；无遗漏、无多余 | `fail` |
-| **C-INPUT-02** | `05-流程模型.md` 的 `ND-*` 集合 == BPMN 各 `task`/`gateway` id 集合 | `fail` |
+| **C-INPUT-02** | `05-流程模型.md` 的 `ND-*` 集合 == BPMN 各 `task`/`gateway`/`event` id 集合 | `fail` |
 | **C-INPUT-03** | `02-领域模型.md` 的 `ENT-*` 集合 ⊆ OWL 类集合 | `fail` |
 | **C-INPUT-04** | `model-spec.json` 的 capability/process/entity 清单 == 00-07 对应集合 | `fail` |
+
+OWL 资源允许两种 ID 投影：IRI 本地名直接使用稳定 ID，或本地名为中文业务名、
+稳定 ID 放在 `trace:稳定标识`（`stableId` 亦可）注解。C-INPUT-03 和
+`build_baseline_slice.py` 同时读取两者，因此中文 IRI 的 OWL 仍能与 `ENT-*`
+精确对应，切片也不会漏掉 OWL。
+
+`model-spec.json` 的条目主键允许 `id`，也允许 research-to-project-input 风格的
+`capability_id` / `process_id` / `entity_id`；C-INPUT-04 两种写法都认。
 
 实现约束：
 

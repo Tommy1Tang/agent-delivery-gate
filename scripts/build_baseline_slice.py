@@ -33,6 +33,8 @@ import re
 import sys
 from pathlib import Path
 
+from baseline_ids import owl_resource_ids
+
 FIXED_GLOBAL = [
     "00-项目概述.md",
     "01-能力目录.md",
@@ -109,20 +111,14 @@ def _bpmn_for_processes(models: Path, process_ids: list[str]) -> list[str]:
 
 
 def _owl_for_entities(models: Path, entity_ids: list[str]) -> list[str]:
-    """OWL files whose class local-names intersect the slice entities."""
+    """OWL files whose class IDs and stable-ID annotations intersect the slice."""
     out: list[str] = []
     owl_dir = models / "ontology"
     if not owl_dir.is_dir() or not entity_ids:
         return out
     wanted = set(entity_ids)
     for of in sorted(owl_dir.glob("*.owl")):
-        try:
-            text = of.read_text(encoding="utf-8", errors="ignore")
-        except OSError:
-            continue
-        locals_ = {v.split("#")[-1].rsplit("/", 1)[-1]
-                   for v in re.findall(r'(?:about|ID)="([^"]+)"', text)}
-        if locals_ & wanted:
+        if owl_resource_ids(of) & wanted:
             out.append(of.relative_to(models.parent).as_posix())
     return out
 
